@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    
 
     // --- EVENT LISTENERLAR ---
     if (searchInput) {
@@ -109,4 +108,5 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+
 });
