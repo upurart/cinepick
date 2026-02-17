@@ -1,0 +1,373 @@
+{% extends 'base.html' %}
+
+{% block title %}Profilim - CinePick{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user-account.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <h2 class="section-title neon-text" style="margin-top: 30px; margin-bottom: 20px;">
+        <i class="fas fa-user"></i> Hesabın
+    </h2>
+
+    <div class="account-layout">
+
+        <div class="profile-section">
+            <form id="avatar-upload-form" action="{{ url_for('upload_avatar') }}" method="POST" enctype="multipart/form-data">
+                <input type="file" name="avatar_file" id="avatar-file-input" accept="image/png, image/jpeg, image/gif" style="display: none;">
+
+                <div class="avatar-circle clickable-avatar" onclick="document.getElementById('avatar-file-input').click()">
+                    {% if user.avatar %}
+                        <img src="{{ url_for('static', filename='uploads/' + user.avatar) }}" alt="Avatar">
+                    {% else %}
+                        <span>{{ user.username[0]|upper }}</span>
+                    {% endif %}
+                    <div class="upload-overlay">
+                        <i class="fas fa-camera"></i>
+                    </div>
+                </div>
+            </form>
+            <h1 class="profile-name">{{ user.username }}</h1>
+            <p class="profile-email">{{ user.email }}</p>
+        </div>
+
+        <div class="info-section">
+            <div class="stats-row">
+                <div class="stat-card">
+                    <span class="stat-number">{{ watchlist_count }}</span>
+                    <span class="stat-title">İzleme Listesi</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">{{ user.created_at.strftime('%d.%m.%Y') }}</span>
+                    <span class="stat-title">Kayıt Tarihi</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">{{ days_active }}</span>
+                    <span class="stat-title">Gündür Üye</span>
+                </div>
+            </div>
+            <div class="delete-row">
+                {% if user.avatar %}
+                    <button onclick="openAvatarConfirmModal('{{ user.id }}', '{{ user.username }}')" class="btn-delete avatar-delete-btn" style="margin-right: 20px;">
+                        Profil Resmini Kaldır
+                    </button>
+                {% endif %}
+                {% if not current_user.is_admin %}
+                    <button onclick="openDeleteAccountConfirmModal()" class="btn-delete">
+                        Hesabımı Sil
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="container watchlist-container">
+
+    <h2 class="section-title neon-text"><i class="fas fa-bookmark"></i> İzleme Listen</h2>
+
+    <div class="movies-grid">
+        {% for movie in watchlist_movies %}
+            <a href="{{ url_for('content_detail', media_type=movie.media_type, id=movie.id) }}" class="movie-card">
+                <div class="watchlist-btn">
+                    <button class="remove-item-btn"
+                            onclick="removeAccountWatchlistItem(event, '{{ movie.media_type }}', '{{ movie.id }}', this)"
+                            title="Listeden Kaldır">
+                        <i class="fas fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="poster-wrapper">
+                    <div class="rating-badge">
+                        <i class="fas fa-star"></i> {{ movie.rating }}
+                    </div>
+                    <img src="{{ movie.poster_url }}" alt="{{ movie.title }}" loading="lazy">
+                </div>
+
+                <div class="movie-info">
+                    <h3 class="movie-title" style="margin-bottom: 10px;">{{ movie.title }}</h3>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px;">
+                        <span class="movie-year" style="margin: 0; line-height: 1;">{{ movie.release_year }}</span>
+
+                        <span class="movie-type" style="border: 1px solid #555; border-radius: 4px; line-height: 15px;height: 20px;padding: 2px 6px; font-size: 0.7rem; color: #888; display: inline-block; text-transform: uppercase;">
+                            {{ 'DİZİ' if movie.media_type == 'tv' else 'FİLM' }}
+                        </span>
+                    </div>
+                </div>
+            </a>
+        {% endfor %}
+    </div>
+
+    <div class="info-box-wrapper" id="watchlist-empty-state"
+         style="display: {{ 'none' if watchlist_movies else 'block' }};">
+        <div class="info-box empty-list">
+            <i class="far fa-folder-open fa-3x"></i>
+            <h3>İzleme Listen Henüz Boş</h3>
+            <p>Filmleri ve dizileri keşfet, beğendiklerini listene ekle!</p>
+            <a href="{{ url_for('all_movies') }}" class="info-btn secondary">İçerikleri Keşfet</a>
+        </div>
+    </div>
+
+</div>
+
+<div class="modal-overlay" id="removeAvatarConfirmModal">
+    <div class="modal-content" style="width: 380px;">
+        <div class="modal-header">
+            <h3>Profil Resmi Kaldırma</h3>
+            <button class="close-modal" onclick="closeRemoveAvatarConfirmModal()">&times;</button>
+        </div>
+
+        <div class="modal-body" style="text-align: center;">
+            <p style="color: #fff; font-weight: 600;">
+                Profil fotoğrafınızı KALDIRMAK istediğinize emin misiniz?
+            </p>
+            <p style="color: #aaa; font-size: 0.9em; margin-top: 10px;">
+                Bu işlem geri alınamaz.
+            </p>
+        </div>
+
+        <div class="modal-footer" style="justify-content: space-between;">
+            <button type="button" class="btn-cancel" onclick="closeRemoveAvatarConfirmModal()">Vazgeç</button>
+            <button type="button" class="btn-danger" id="confirmRemoveAvatarButton">Evet, Kaldır</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="deleteAccountConfirmModal">
+    <div class="modal-content" style="width: 450px;">
+        <div class="modal-header">
+            <h3>HESAP SİLME UYARISI</h3>
+            <button class="close-modal" onclick="closeDeleteAccountConfirmModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+            <p style="color: #ff4757; font-weight: 600;">
+                DİKKAT: Hesabınızı kalıcı olarak silmek üzeresiniz!
+            </p>
+            <p style="color: #fff; margin-top: 10px;">
+                İzleme listenizdeki tüm filmler ve diziler ile hesabınıza ait tüm veriler GERİ ALINAMAZ şekilde silinecektir.
+            </p>
+        </div>
+
+        <div class="modal-footer" style="justify-content: space-between;">
+            <button type="button" class="btn-cancel" onclick="closeDeleteAccountConfirmModal()">Vazgeç</button>
+            <button type="button" class="btn-danger" id="confirmDeleteAccountButton">Hesabımı Kalıcı Sil</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+    // Global değişkenler
+    const REMOVE_AVATAR_URL_BASE = "{{ url_for('remove_avatar', user_id=user.id) }}";
+    const DELETE_ACCOUNT_URL = "{{ url_for('delete_account') }}";
+    const USER_ID = '{{ user.id }}';
+    const USERNAME = '{{ user.username }}';
+
+    // İşlem sonucuna göre modal içeriğini günceller
+    function showResultModal(message, isSuccess) {
+        const modal = document.getElementById('removeAvatarConfirmModal');
+        const header = modal.querySelector('.modal-header h3');
+        const body = modal.querySelector('.modal-body');
+        const footer = modal.querySelector('.modal-footer');
+
+        header.textContent = isSuccess ? 'İşlem Başarılı' : 'Hata Oluştu';
+        body.innerHTML = `<p style="color: ${isSuccess ? '#2ed573' : '#ff4757'}; font-weight: bold;">${message}</p>`;
+        footer.innerHTML = `<button type="button" class="btn-cancel" onclick="closeAndReloadIfSuccess(${isSuccess})">Kapat</button>`;
+
+        modal.classList.add('is-active');
+    }
+
+    // Modal kapatır ve başarı durumunda sayfayı yeniler
+    function closeAndReloadIfSuccess(isSuccess) {
+        closeRemoveAvatarConfirmModal();
+        if (isSuccess) {
+            window.location.reload();
+        }
+    }
+
+    // Avatar kaldırma onay modalını hazırlar ve açar
+    function openAvatarConfirmModal(userId, username) {
+        const confirmModal = document.getElementById('removeAvatarConfirmModal');
+
+        if (!confirmModal) {
+            console.error("HATA: removeAvatarConfirmModal bulunamadi.");
+            return;
+        }
+
+        confirmModal.querySelector('.modal-header h3').textContent = 'Profil Resmi Kaldırma Onayı';
+        confirmModal.querySelector('.modal-body').innerHTML = `
+            <p style="color: #fff; font-weight: 600;">
+                Profil fotoğrafınızı KALDIRMAK istediğinize emin misiniz?
+            </p>
+            <p style="color: #aaa; font-size: 0.9em; margin-top: 10px;">
+                Bu işlem geri alınamaz.
+            </p>
+        `;
+
+        confirmModal.querySelector('.modal-footer').innerHTML = `
+            <button type="button" class="btn-cancel" onclick="closeRemoveAvatarConfirmModal()">Vazgeç</button>
+            <button type="button" class="btn-danger" id="confirmRemoveAvatarButton">Evet, Kaldır</button>
+        `;
+
+        const confirmBtn = document.getElementById('confirmRemoveAvatarButton');
+        confirmBtn.onclick = function() {
+            executeRemoveAvatar(userId);
+        };
+
+        confirmModal.classList.add('is-active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Avatar modalını kapatır
+    function closeRemoveAvatarConfirmModal() {
+        document.getElementById('removeAvatarConfirmModal').classList.remove('is-active');
+        document.body.style.overflow = '';
+    }
+
+    // Avatar silme isteğini sunucuya gönderir
+    function executeRemoveAvatar(userId) {
+        if (!userId) return;
+
+        closeRemoveAvatarConfirmModal();
+
+        const REMOVE_AVATAR_URL = `/remove_avatar/${userId}`;
+
+        fetch(REMOVE_AVATAR_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' || data.status === 'info') {
+                showResultModal(data.message, true);
+            } else {
+                showResultModal(data.message, false);
+            }
+        })
+        .catch(error => {
+            console.error('Avatar silme hatası:', error);
+            showResultModal('Avatar silinirken beklenmedik bir hata oluştu.', false);
+        });
+    }
+
+    // Hesap silme modalını açar
+    function openDeleteAccountConfirmModal() {
+        document.getElementById('deleteAccountConfirmModal').classList.add('is-active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Hesap silme modalını kapatır
+    function closeDeleteAccountConfirmModal() {
+        document.getElementById('deleteAccountConfirmModal').classList.remove('is-active');
+        document.body.style.overflow = '';
+    }
+
+    // Hesap silme işlemini başlatır
+    function executeDeleteAccount() {
+        window.location.href = DELETE_ACCOUNT_URL;
+    }
+
+    // İzleme listesinden öğe siler ve arayüzü günceller
+    function removeAccountWatchlistItem(event, mediaType, movieId, btnElement) {
+        event.preventDefault();
+        event.stopPropagation();
+        btnElement.disabled = true;
+
+        fetch(`/remove_from_watchlist/${mediaType}/${movieId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'removed') {
+                const card = btnElement.closest('.movie-card');
+                if (card) {
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.9)';
+
+                    setTimeout(() => {
+                        card.remove();
+                        updateStatsCounter();
+                        checkIfListEmpty();
+                    }, 300);
+                }
+            } else {
+                alert("Hata: " + data.message);
+                btnElement.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Bir hata oluştu.");
+            btnElement.disabled = false;
+        });
+    }
+
+    // İstatistik sayacını bir azaltır
+    function updateStatsCounter() {
+        const statNumber = document.querySelector('.stat-card:first-child .stat-number');
+        if (statNumber) {
+            let currentCount = parseInt(statNumber.textContent);
+            if (!isNaN(currentCount) && currentCount > 0) {
+                statNumber.textContent = currentCount - 1;
+            }
+        }
+    }
+
+    // Liste boşaldıysa boş durum mesajını gösterir
+    function checkIfListEmpty() {
+        const grid = document.querySelector('.movies-grid');
+        const emptyState = document.getElementById('watchlist-empty-state');
+
+        if (!grid || grid.children.length === 0) {
+            if (grid) grid.style.display = 'none';
+            if (emptyState) {
+                emptyState.style.display = 'block';
+                emptyState.style.opacity = '0';
+                emptyState.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => {
+                    emptyState.style.opacity = '1';
+                }, 50);
+            }
+        }
+    }
+
+    // Sayfa yüklendiğinde olay dinleyicilerini tanımlar
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('avatar-file-input').addEventListener('change', function() {
+            if (this.files.length > 0) {
+                document.getElementById('avatar-upload-form').submit();
+            }
+        });
+
+        const confirmRemoveBtn = document.getElementById('confirmRemoveAvatarButton');
+        if (confirmRemoveBtn) {
+            confirmRemoveBtn.addEventListener('click', () => executeRemoveAvatar(USER_ID));
+        }
+
+        const confirmDeleteBtn = document.getElementById('confirmDeleteAccountButton');
+        if (confirmDeleteBtn) {
+            confirmDeleteBtn.addEventListener('click', executeDeleteAccount);
+        }
+    });
+
+    // Modal dışına tıklanırsa kapatır
+    window.onclick = function(event) {
+        const modalAvatar = document.getElementById('removeAvatarConfirmModal');
+        const modalDelete = document.getElementById('deleteAccountConfirmModal');
+
+        if (event.target == modalAvatar) {
+            closeRemoveAvatarConfirmModal();
+        }
+        if (event.target == modalDelete) {
+            closeDeleteAccountConfirmModal();
+        }
+    }
+</script>
+{% endblock %}

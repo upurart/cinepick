@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}{{ movie.title }} - CinePick{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/movie-details.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="movie-detail-container">
+    <div class="backdrop" style="background-image: url('{{ movie.backdrop }}');">
+        <div class="overlay"></div>
+    </div>
+
+    <div class="content-wrapper">
+        <div class="poster-section">
+            <img src="{{ movie.poster }}" alt="{{ movie.title }}" class="main-poster">
+        </div>
+
+        <div class="info-section">
+            <h1 class="movie-title">{{ movie.title }}</h1>
+
+            <div class="meta-data">
+                <span class="badge quality">HD</span>
+                <span class="badge rating"><i class="fas fa-star"></i> {{ movie.vote_average }}</span>
+                <span class="meta-item">{{ movie.release_date[:4] if movie.release_date else '' }}</span>
+
+                <span class="meta-item">
+                    {% if movie.media_type == 'tv' %}
+                        {{ movie.season_count }} Sezon / {{ movie.episode_count }} Bölüm
+                    {% else %}
+                        {{ movie.runtime }} dk
+                    {% endif %}
+                </span>
+
+                <span class="meta-item">{{ movie.genres | join(', ') }}</span>
+            </div>
+
+            <p class="description">
+                {{ movie.overview }}
+            </p>
+
+            <p class="director" style="color:#bbb; margin-top:10px; margin-bottom: 30px;">
+                <strong>{{ 'Yaratıcılar' if movie.media_type == 'tv' else 'Yönetmen' }}:</strong> {{ movie.director }}
+            </p>
+
+            <div class="buttons">
+                {% if movie.trailer_url %}
+                    <button class="btn btn-play" onclick="openTrailer('{{ movie.trailer_url }}')">
+                        <i class="fas fa-play"></i> Fragmanı İzle
+                    </button>
+                {% endif %}
+
+                {% if current_user.is_authenticated %}
+                    <div id="watchlist-action-container">
+                        <button onclick="toggleCardWatchlist(event, this, '{{ movie.media_type }}', '{{ movie.id }}')"
+                                class="btn btn-secondary"
+                                style="border:none; text-decoration:none;"
+                                title="{{ 'Listeden Kaldır' if movie.in_watchlist else 'Listeye Ekle' }}">
+                            <i class="{{ 'fas' if movie.in_watchlist else 'far' }} fa-bookmark"></i>
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if movie.media_type == 'tv' and movie.seasons %}
+                <div class="cast-section" style="margin-bottom: 30px;">
+                    <h3>Sezonlar</h3>
+
+                    <div class="season-wrapper">
+                        <button class="season-btn prev" id="prevBtn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+
+                        <div class="season-window">
+                            <div class="season-track" id="seasonTrack">
+                                {% for season in movie.seasons %}
+                                    <div class="season-card">
+                                        <div class="season-poster" style="background-image: url('{{ season.poster }}');"></div>
+                                        <div class="season-info">
+                                            <span class="season-name">{{ season.name }}</span>
+                                            <span class="season-details">{{ season.episode_count }} Bölüm</span>
+                                            <span class="season-details">{{ season.air_date }}</span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <button class="season-btn next" id="nextBtn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="cast-section">
+                <h3>Oyuncular</h3>
+                <div class="cast-list">
+                    {% if movie.cast %}
+                        {% for actor in movie.cast %}
+                            <a href="{{ url_for('actor_detail', actor_id=actor.id) }}" class="cast-item">
+                                <div class="cast-img" style="background-image: url('{{ actor.photo }}');"></div>
+                                <span>{{ actor.name }}</span>
+                                <span style="font-size: 0.8rem; color: #888;">{{ actor.character }}</span>
+                            </a>
+                        {% endfor %}
+                    {% else %}
+                        <p>Oyuncu bilgisi bulunamadı.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if movie.similar_movies %}
+    <div class="container section-padding">
+        <h2 class="section-title">Benzer İçerikler</h2>
+        <div class="similar-movies-grid">
+            {% for sim in movie.similar_movies %}
+                <div onclick="window.location.href='{{ url_for('content_detail', media_type=sim.media_type, id=sim.id) }}'"
+                     class="similar-movie-card-design">
+                    {% if current_user.is_authenticated %}
+                        <div class="watchlist-btn">
+                            <button class="add-item-btn"
+                                    onclick="toggleCardWatchlist(event, this, '{{ movie.media_type }}', '{{ movie.id }}')"
+                                    title="Listeye Ekle">
+                                <i class="{% if movie.in_watchlist %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                            </button>
+                        </div>
+                    {% endif %}
+                    <div class="similar-image-container">
+                        <img src="{{ sim.poster }}" alt="{{ sim.title }}">
+                        <div class="similar-rating-badge">
+                            <i class="fas fa-star"></i> {{ sim.rating }}
+                        </div>
+                    </div>
+
+                    <div class="similar-text-content">
+                        <h4 class="similar movie-title" style="margin-bottom: 15px;">{{ sim.title }}</h4>
+                        <p class="similar-movie-date" style="margin-left: 5px;"> {{ sim.release_date }}</p>
+                        <div style="display: flex; position:relative; bottom:15px; justify-content: space-between; align-items: center; color: #ccc; font-size: 0.9rem; ">
+                            <span style="display: inline-flex;  position: absolute; align-items: center;justify-content: center;  height: 20px; font-size: 0.7rem; padding: 2px 6px; line-height: 0; right: 5px; border: 1px solid #555; border-radius: 4px; color: #888; text-transform: uppercase; font-weight: 600;box-sizing: border-box;">
+                                {{ 'DİZİ' if sim.media_type == 'tv' else 'FİLM' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+<div id="trailerModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeTrailer()">&times;</span>
+        <iframe id="youtubeFrame" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const track = document.getElementById('seasonTrack');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        if (!track || !prevBtn || !nextBtn) return;
+
+        let currentIndex = 0;
+        const itemsPerView = 5;
+        const cardWidth = 120;
+        const gap = 20;
+        const slideAmount = cardWidth + gap;
+
+        const totalItems = track.children.length;
+        const maxIndex = totalItems - itemsPerView;
+
+        // Slider içeriği ekrana sığıyorsa butonları gizle ve ortala
+        if (totalItems <= itemsPerView) {
+            prevBtn.style.display = 'none';
+            nextBtn.style.display = 'none';
+            track.style.justifyContent = 'center';
+        } else {
+            updateButtonState();
+        }
+
+        // Önceki sezon grubuna kaydır
+        prevBtn.addEventListener('click', function() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateSlider();
+            }
+        });
+
+        // Sonraki sezon grubuna kaydır
+        nextBtn.addEventListener('click', function() {
+            if (currentIndex < maxIndex) {
+                currentIndex++;
+                updateSlider();
+            }
+        });
+
+        // Slider pozisyonunu CSS ile güncelle
+        function updateSlider() {
+            const translateX = -(currentIndex * slideAmount);
+            track.style.transform = `translateX(${translateX}px)`;
+            updateButtonState();
+        }
+
+        // İlk ve son öğelere göre butonların görünürlüğünü ayarla
+        function updateButtonState() {
+            if (currentIndex === 0) {
+                prevBtn.classList.add('is-hidden');
+            } else {
+                prevBtn.classList.remove('is-hidden');
+            }
+
+            if (currentIndex === maxIndex) {
+                nextBtn.classList.add('is-hidden');
+            } else {
+                nextBtn.classList.remove('is-hidden');
+            }
+        }
+    });
+</script>
+<script src="{{ url_for('static', filename='js/movie-details.js') }}"></script>
+
+{% endblock %}

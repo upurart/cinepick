@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}Keşfet - CinePick{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/all-movies.css') }}">
+<style>
+    .type-selector {
+        display: flex;
+        gap: 5px;
+        margin-top: 10px;
+    }
+    
+    .type-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 5px 5px;
+        border: 2px solid rgba(255,255,255,0.15);
+        background: transparent;
+        color: #ccc;
+        text-decoration: none;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        aspect-ratio: 1/1;
+        max-height: 100px;
+    }
+
+    .type-btn i {
+        font-size: 1.2rem;
+        margin-bottom: 5px;
+        transition: transform 0.3s;
+    }
+
+    .type-btn span {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .type-btn:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: #fff;
+        color: #fff;
+        transform: translateY(-3px);
+    }
+    
+    .type-btn.active {
+        background: var(--primary-purple, #810CA8);
+        border-color: var(--primary-purple, #810CA8);
+        color: #fff;
+        box-shadow: 0 0 15px rgba(129, 12, 168, 0.4);
+    }
+
+    .filter-group .group-content {
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition: all 0.3s ease-in-out;
+        pointer-events: none;
+    }
+
+    .filter-group.open .group-content {
+        max-height: 500px;
+        opacity: 1;
+        pointer-events: auto;
+        margin-top: 10px;
+    }
+
+    .group-header {
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px 0;
+    }
+
+    .group-header i {
+        transition: transform 0.3s ease;
+    }
+
+    .filter-group.open .group-header i {
+        transform: rotate(180deg);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    
+    <aside class="filter-sidebar">
+        <div class="filter-header">
+            <h2>Filtreler</h2>
+            <button class="reset-btn" onclick="resetFilters()">Sıfırla</button>
+        </div>
+
+        <div class="filter-group">
+            <div class="group-header">
+                <h3>İçerik Türü</h3><i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="group-content">
+                <div class="type-selector">
+                    <a href="{{ url_for('all_movies', type='all') }}" class="type-btn {{ 'active' if current_type == 'all' else '' }}">
+                        <i class="fas fa-layer-group"></i> Tümü
+                    </a>
+                    <a href="{{ url_for('all_movies', type='movie') }}" class="type-btn {{ 'active' if current_type == 'movie' else '' }}">
+                        <i class="fas fa-film"></i> Filmler
+                    </a>
+                    <a href="{{ url_for('all_movies', type='tv') }}" class="type-btn {{ 'active' if current_type == 'tv' else '' }}">
+                        <i class="fas fa-tv"></i> Diziler
+                    </a>
+                </div>
+                <input type="hidden" id="current-media-type" value="{{ current_type }}">
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <div class="group-header">
+                <h3>Sırala</h3>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="group-content">
+                <select id="sort-select">
+                    <option value="popularity.desc">Popülerlik (Azalan)</option>
+                    <option value="popularity.asc">Popülerlik (Artan)</option>
+                    <option value="vote_average.desc">Puan (Azalan)</option>
+                    <option value="vote_average.asc">Puan (Artan)</option>
+                    <option value="original_title.asc">İsim (A-Z)</option>
+                    <option value="original_title.desc">İsim (Z-A)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <div class="group-header">
+                <h3>Minimum Puan</h3>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="group-content">
+                <div class="range-slider">
+                    <label>Puan: <span id="rating-val">0</span>+</label>
+                    <input type="range" min="0" max="10" step="1" value="0" id="rating-range">
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-group open">
+            <div class="group-header">
+                <h3>Türler</h3>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="group-content">
+                <div class="genre-grid">
+                    <button class="genre-tag" data-value="28">Aksiyon</button>
+                    <button class="genre-tag" data-value="878">Bilim Kurgu</button>
+                    <button class="genre-tag" data-value="18">Dram</button>
+                    <button class="genre-tag" data-value="35">Komedi</button>
+                    <button class="genre-tag" data-value="27">Korku</button>
+                    <button class="genre-tag" data-value="10749">Romantik</button>
+                    <button class="genre-tag" data-value="53">Gerilim</button>
+                    <button class="genre-tag" data-value="16">Animasyon</button>
+                    <button class="genre-tag" data-value="14">Fantastik</button>
+                    <button class="genre-tag" data-value="9648">Gizem</button>
+                    <button class="genre-tag" data-value="10751">Aile</button>
+                </div>
+            </div>
+        </div>
+        
+        <button class="apply-filters-btn" onclick="applyFilters()">Filtreleri Uygula</button>
+    </aside>
+
+    <main class="movies-grid-section">
+        <h1 class="page-title">
+            {% if current_type == 'tv' %} 
+                Tüm Diziler 
+            {% elif current_type == 'movie' %} 
+                Tüm Filmler 
+            {% else %} 
+                Tüm İçerikler 
+            {% endif %}
+        </h1>
+        
+        <div class="movies-grid">
+            {% if movies %}
+                {% for movie in movies %}
+                    <div class="movie-card" onclick="window.location.href='{{ url_for('content_detail', media_type=movie.media_type, id=movie.id) }}'">
+                        {% if current_user.is_authenticated %}
+                            <div class="watchlist-btn">
+                                <button class="add-item-btn" 
+                                        onclick="toggleCardWatchlist(event, this, '{{ movie.media_type }}', '{{ movie.id }}')"
+                                        title="Listeye Ekle">
+                                    <i class="{% if movie.in_watchlist %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                                </button>
+                            </div>
+                        {% endif %}
+                        <div class="poster-container">
+                            <img src="{{ movie.poster }}" alt="{{ movie.title }}">
+                            <div class="rating-badge"><i class="fas fa-star"></i> {{ movie.rating }}</div>
+                        </div>
+                        <div class="movie-info">
+                            <h3>{{ movie.title }}</h3>
+                            <p class="date">{{ movie.release_date }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>Aradığınız kriterlere uygun içerik bulunamadı.</p>
+            {% endif %}
+        </div>
+
+        <div class="pagination-container">
+            {% if current_page > 1 %}
+                <button class="page-btn" onclick="changePage({{ current_page - 1 }})">
+                    <i class="fas fa-chevron-left"></i> 
+                </button>
+            {% else %}
+                <button class="page-btn" disabled>
+                    <i class="fas fa-chevron-left"></i> 
+                </button>
+            {% endif %}
+
+            <span class="page-info">Sayfa {{ current_page }} / {{ total_pages }}</span>
+
+            {% if current_page < total_pages %}
+                <button class="page-btn" onclick="changePage({{ current_page + 1 }})">
+                     <i class="fas fa-chevron-right"></i>
+                </button>
+            {% else %}
+                <button class="page-btn" disabled>
+                     <i class="fas fa-chevron-right"></i>
+                </button>
+            {% endif %}
+        </div>
+    </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/filter.js') }}"></script>
+{% endblock %}

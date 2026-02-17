@@ -1,0 +1,380 @@
+/* --- ARAMA ÇUBUĞU --- */
+
+.sortable-header {
+    /* Başlıkların tıklanabilir alanını doldurur */
+    display: flex; 
+    align-items: center;
+    gap: 5px; /* Ok ve metin arasına boşluk */
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit; /* Rengi korur */
+}
+
+/* Tablo başlığının varsayılan padding'ini a etiketi alır */
+thead th a {
+    /* Tablo başlığı padding'ini A etiketine yay */
+    padding: 15px 0; 
+    margin: -15px 0; /* Padding'i sıfırlamak için */
+}
+
+/* Sıralama okları */
+.sortable-header i.fas {
+    font-size: 0.8rem;
+    transition: transform 0.2s;
+}
+
+.search-container {
+    margin-bottom: 20px;
+    background: #1f1f1f;
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #333;
+    display: flex;
+    gap: 10px;
+}
+
+.search-input {
+    flex: 1;
+    background: #2a2a2a;
+    border: 1px solid #444;
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #810CA8;
+}
+
+.search-btn {
+    background: #810CA8;
+    color: white;
+    border: none;
+    padding: 0 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.search-btn:hover { background: #6a0a8b; }
+
+/* Temizle butonu (A etiketi olarak kullanılıyor) */
+.btn-cancel {
+    background: #444;
+    color: white;
+    border: none;
+    padding: 10px 15px; /* Düzgün dikey hizalama için */
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+    text-align: center;
+}
+.btn-cancel:hover { background: #555; }
+
+
+/* --- TABLO DÜZENLEMELERİ --- */
+
+/* Tabloya tıklanabilirlik hissi vermek için */
+.table-container table tbody tr {
+    cursor: pointer;
+}
+.table-container table tbody tr:hover {
+    background-color: #252525;
+}
+
+.poster-cell {
+    width: 60px;
+    padding: 5px !important;
+}
+
+.poster-cell img {
+    width: 50px;
+    height: 75px;
+    object-fit: cover;
+    border-radius: 6px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.title-cell {
+    font-weight: 600;
+    color: #fff;
+}
+
+.type-badge {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: bold;
+    display: inline-block;
+    margin-top: 5px;
+}
+.type-movie { background: rgba(129, 12, 168, 0.2); color: #d6bcfa; border: 1px solid #810CA8; }
+.type-tv { background: rgba(0, 180, 216, 0.2); color: #90e0ef; border: 1px solid #00b4d8; }
+
+/* Gizlilik Durumu Butonu */
+.visibility-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 8px;
+    transition: 0.2s;
+    /* Satır içi (inline) formattan kurtarmak için */
+    display: inline-block; 
+}
+.vis-visible { color: #2ecc71; } /* Yeşil Göz */
+.vis-hidden { color: #e74c3c; } /* Kırmızı Çizgili Göz */
+
+
+/* ==================================== */
+/* --- MODAL KONUM VE İÇERİK STİLLERİ --- */
+/* ==================================== */
+
+.modal-overlay {
+    display: none !important; 
+    /* AGRESİF ÇÖZÜM: Pozisyonu ve Z-index'i ezmek için */
+    position: fixed !important; 
+    z-index: 999999 !important; 
+    top: 0 !important; 
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    display: flex; 
+    justify-content: center;
+    align-items: center;
+}
+
+/* Kapat butonu ve Kaydet butonu renkleri (Düzeltme, formdan gelmeli) */
+.btn-cancel {
+    background: #555;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-toggle-hide.is-hidden {
+    background: #2ecc71; /* Yayına Al (Yeşil) */
+    color: #fff;
+}
+.btn-toggle-hide.is-visible {
+    background: #e74c3c; /* Gizle (Kırmızı) */
+    color: #fff;
+}
+
+.modal-content {
+    background: #1f1f1f;
+    padding: 30px;
+    border-radius: 12px;
+    width: 600px; /* Genişlik */
+    max-width: 90%;
+    border: 1px solid #333;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+    color: #fff;
+    position: relative;
+    
+    /* İçerik taşıyorsa modalın kendisi kaydırılsın */
+    max-height: 90vh; 
+    overflow-y: auto; 
+    
+    animation: modalFadeIn 0.3s ease;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    border-bottom: 1px solid #333;
+    padding-bottom: 15px;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 1.8rem;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s;
+}
+.close-modal:hover { color: #fff; }
+
+/* Modal Detayları Layout */
+.movie-modal-layout {
+    display: flex;
+    gap: 20px;
+    
+    /* İçeriklerin sığması için esnekliği ayarla */
+    flex-wrap: wrap; 
+}
+
+.modal-poster img {
+    width: 150px;
+    min-width: 150px; /* Küçülmesini engelle */
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+.modal-info {
+    flex: 1;
+    min-width: 250px; /* Postere rağmen içeriğin daralmamasını sağlar */
+}
+
+.modal-info h2 {
+    margin-top: 0;
+    color: #fff;
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.info-row {
+    margin-bottom: 15px;
+    color: #ccc;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.info-label {
+    color: #888;
+    font-size: 0.85rem;
+    display: block;
+    margin-bottom: 3px;
+    font-weight: 600;
+}
+
+/* Açıklama Alanı */
+#modalOverview {
+    max-height: 150px; 
+    overflow-y: auto; /* Scrollbar sadece burası için */
+    padding-right: 10px; 
+    color: #ccc;
+    line-height: 1.4;
+}
+
+/* Modal Butonları */
+.modal-actions {
+    margin-top: 25px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.btn-toggle-hide {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-toggle-hide.is-hidden {
+    background: #2ecc71;
+    color: #fff;
+}
+.btn-toggle-hide.is-visible {
+    background: #e74c3c;
+    color: #fff;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- YENİ MODAL AÇILIŞ SINIFI (HATA GİDERME) --- */
+.modal-overlay.is-active {
+    display: flex !important; 
+    
+    /* Konum ve görünüm garantisi */
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 999999999 !important; 
+    
+    justify-content: center !important;
+    align-items: center !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+}
+
+/* --- SAYFALANDIRMA (PAGINATION) STİLLERİ --- */
+
+/* --- SAYFALANDIRMA (PAGINATION) STİLLERİ --- */
+
+.pagination-container {
+    /* KRİTİK: Genişlik 100% yapıldı */
+    width: 100%; 
+    
+    /* İçindeki öğeleri dağıtmak veya ortalamak için Flexbox */
+    display: flex;
+    justify-content: center; /* İçerikleri yatayda ortalar (page-btns) */
+    align-items: center;
+    
+    gap: 15px; /* Artık buna gerek kalmadı, çünkü içerik tek bir .page-btns içinde */
+    
+    margin-top: 20px;
+    padding: 15px;
+    background: #1a1a1a;
+    border-radius: 12px;
+    border: 1px solid #333;
+}
+
+.page-btns {
+    /* Buton grubu burada kalır */
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Butonlar ve sayfa bilgisi arasındaki boşluk */
+    
+    /* Gerekirse, .page-btns'i merkeze sabitlemek için bu container yeterlidir. */
+    /* İçindeki öğeler (butonlar ve span) yan yana ve ortalanmış kalır. */
+}
+
+.page-btn {
+    background: #810CA8;
+    color: white;
+    
+    width: 50px; 
+    height: 40px; 
+    
+    padding: 0; 
+    border-radius: 6px;
+    margin: 0; 
+    font-weight: 600;
+    
+    /* KRİTİK: Buton içindeki ikonu hem yatay hem dikey ortala */
+    display: flex;
+    justify-content: center; /* Yatayda ortala */
+    align-items: center; 
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+
+.page-btn:hover:not(.disabled) {
+    background: #6a0a8b;
+}
+
+.page-btn.disabled {
+    visibility: hidden;
+}
+
+.page-info {
+    color: #b3b3b3;
+    font-size: 1rem;
+}

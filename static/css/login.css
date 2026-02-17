@@ -1,0 +1,228 @@
+/* GENEL AYARLAR */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Outfit', sans-serif;
+}
+
+body {
+    background: radial-gradient(circle at top left, #2e1065, #0f0518);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+
+
+.logo {
+    overflow: hidden;
+    align-items: center;
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.logo img {
+    width: 300px;
+    height: 50px;
+    margin: 0 auto;
+}
+
+/* KART TASARIMI */
+.container {
+    background: rgba(20, 10, 35, 0.95);
+    width: 400px;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.2);
+    border: 1px solid rgba(139, 92, 246, 0.1);
+    position: relative;
+    overflow: hidden;
+    transition: height 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+    box-sizing: border-box;
+}
+
+/* --- AYIRICI ÇİZGİ TASARIMI --- */
+.separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0 15px 0;
+    color: #888;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.separator::before,
+.separator::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #3b1e5c;
+}
+
+.separator::before {
+    margin-right: 10px;
+}
+
+.separator::after {
+    margin-left: 10px;
+}
+
+/* --- MİSAFİR BUTONU TASARIMI --- */
+.guest-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 50px;
+    background: transparent;
+    border: 2px solid #9333ea;
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+    outline: none;
+}
+
+.guest-btn:hover {
+    background: rgba(147, 51, 234, 0.15);
+    box-shadow: 0 0 15px rgba(147, 51, 234, 0.4);
+    transform: translateY(-2px);
+}
+
+/* SEKME (TAB) BUTONLARI */
+.btn-box {
+    width: 100%;
+    margin: 0 auto 30px auto;
+    text-align: center;
+    border-radius: 30px;
+    background: #25133a;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    padding: 5px;
+}
+
+.toggle-btn {
+    padding: 10px 30px;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    outline: none;
+    position: relative;
+    color: #ccc;
+    font-weight: 600;
+    flex: 1;
+    transition: color 0.3s;
+    z-index: 2;
+}
+
+/* Aktif buton arkaplanı (Kaydırma efekti için) */
+#btn-highlight {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    width: 49%;
+    height: calc(100% - 10px);
+    background: linear-gradient(90deg, #9333ea, #c026d3);
+    border-radius: 30px;
+    transition: .5s;
+    z-index: 1;
+}
+
+.active-text {
+    color: white !important;
+}
+
+/* FORM GRUBU */
+.input-group {
+    width: 100%;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hidden {
+    display: none;
+}
+
+.input-field {
+    width: 100%;
+    padding: 12px 20px;
+    margin: 10px 0;
+    border-radius: 50px;
+    border: 1px solid #3b1e5c;
+    background: #12061f;
+    color: white;
+    outline: none;
+    transition: 0.3s;
+}
+
+.input-field:focus {
+    border-color: #a855f7;
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 12px;
+    cursor: pointer;
+    display: block;
+    margin-top: 20px;
+    background: linear-gradient(90deg, #9333ea, #c026d3);
+    border: 0;
+    outline: none;
+    border-radius: 50px;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+    transition: 0.3s;
+    box-shadow: 0 5px 15px rgba(147, 51, 234, 0.3);
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(147, 51, 234, 0.5);
+}
+
+/* Hata Mesajı Alanı */
+.input-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+.error-msg {
+    color: #ff4d4d;
+    font-size: 12px;
+    margin-top: -8px;
+    margin-bottom: 10px;
+    margin-left: 15px;
+    height: 15px;
+    font-weight: 500;
+}
+
+/* Hatalı Input Tasarımı */
+.input-field.error-border {
+    border-color: #ff4d4d;
+    box-shadow: 0 0 8px rgba(255, 77, 77, 0.3);
+}
+
+.check-box .error-msg {
+    margin-top: 0;
+    margin-bottom: 0;
+    display: inline-block;
+}

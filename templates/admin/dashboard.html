@@ -1,0 +1,202 @@
+{% extends "admin/base.html" %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin-user-edit.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="header">
+        <h2>Genel Bakış</h2>
+        <div class="admin-profile">
+            <span>{{ current_user.username if current_user.is_authenticated else 'Admin' }}</span>
+            <div class="admin-avatar">
+                {% if current_user.is_authenticated and current_user.avatar %}
+                    <img src="{{ url_for('static', filename='uploads/' + current_user.avatar) }}" alt="{{ current_user.username }} Avatar">
+                {% elif current_user.is_authenticated %}
+                    <span>{{ current_user.username[0] | upper }}</span>
+                {% else %}
+                    <span>A</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>{{ stats.total_users }}</h3>
+                <p>Toplam Kullanıcı</p>
+            </div>
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>{{ stats.total_movies }}</h3>
+                <p>İzleme Listelerine Eklenen Film</p>
+            </div>
+            <div class="stat-icon"><i class="fas fa-film"></i></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>{{ stats.daily_visits }}</h3>
+                <p>Bugünkü Ziyaret</p>
+            </div>
+            <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>{{ stats.hidden_count }}</h3>
+                <p>Gizlenmiş Film</p>
+            </div>
+            <div class="stat-icon"><i class="fas fa-eye-slash"></i></div>
+        </div>
+    </div>
+
+    <div class="recent-section">
+        <h2>Son Kayıt Olan Kullanıcılar</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">ID</th>
+                        <th style="width: 50px; text-align: center;">Avatar</th>
+                        <th>Kullanıcı Adı</th>
+                        <th>E-posta</th>
+                        <th>Durum</th>
+                        <th style="width: 100px;">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>#{{ user.id }}</td>
+                        <td class="avatar-cell">
+                            <div class="user-avatar" style="margin: auto;">
+                                {% if user.avatar %}
+                                    <img src="{{ url_for('static', filename='uploads/' + user.avatar) }}" alt="{{ user.username }} Avatar">
+                                {% else %}
+                                    <span>{{ user.username[0] | upper }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>{{ user.username }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.is_admin %}
+                                <span class="status-badge status-admin">Admin</span>
+                            {% else %}
+                                <span class="status-badge status-user">Kullanıcı</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin_users', q=user.username) }}" class="action-btn btn-edit" title="Kullanıcı Yönetimine Git">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" style="text-align:center; padding: 20px;">Kayıt yok.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Kullanıcı Düzenle</h3>
+                <button class="close-modal" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editForm" method="POST">
+                <div class="form-group">
+                    <label>Kullanıcı Adı</label>
+                    <input type="text" name="username" id="editUsername" class="form-input" required autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>E-posta</label>
+                    <input type="email" name="email" id="editEmail" class="form-input" required autocomplete="off">
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" name="is_admin" id="editIsAdmin">
+                    <label for="editIsAdmin">Admin Yetkisi Ver</label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeEditModal()">İptal</button>
+                    <button type="submit" class="btn-save">Değişiklikleri Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-content" style="width: 350px;">
+            <div class="modal-header">
+                <h3>Kullanıcı Sil</h3>
+                <button class="close-modal" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-warning-text">
+                    <span id="deleteUserName" class="highlight-text"></span> adlı kullanıcıyı silmek istediğinize emin misiniz? <br><br>
+                    <small style="color:#888;">Bu işlem geri alınamaz ve kullanıcının tüm verileri (izleme listesi vb.) silinir.</small>
+                </p>
+            </div>
+            <form id="deleteForm" method="POST">
+                <div class="modal-footer" style="justify-content: space-between;">
+                    <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Vazgeç</button>
+                    <button type="submit" class="btn-danger">Evet, Sil</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Düzenleme modalını açar ve form alanlarını doldurur
+        function openEditModal(id, username, email, isAdmin) {
+            document.getElementById('editForm').action = "/admin/edit_user/" + id;
+            document.getElementById('editUsername').value = username;
+            document.getElementById('editEmail').value = email;
+            
+            const adminCheckbox = document.getElementById('editIsAdmin');
+            if (isAdmin === 'True' || isAdmin === 'true' || isAdmin === true) {
+                adminCheckbox.checked = true;
+            } else {
+                adminCheckbox.checked = false;
+            }
+
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        // Düzenleme modalını kapatır
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // Silme modalını açar ve kullanıcı adını gösterir
+        function openDeleteModal(id, username) {
+            document.getElementById('deleteForm').action = "/admin/delete_user/" + id;
+            document.getElementById('deleteUserName').textContent = username;
+            document.getElementById('deleteModal').style.display = 'flex';
+        }
+
+        // Silme modalını kapatır
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+
+        // Modalların dışına tıklandığında kapatılmasını sağlar
+        window.onclick = function(event) {
+            const editModal = document.getElementById('editModal');
+            const deleteModal = document.getElementById('deleteModal');
+            
+            if (event.target == editModal) {
+                closeEditModal();
+            }
+            if (event.target == deleteModal) {
+                closeDeleteModal();
+            }
+        }
+    </script>
+{% endblock %}

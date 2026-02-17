@@ -1,0 +1,411 @@
+/* --- GENEL DEĞİŞKENLER VE AYARLAR --- */
+:root {
+    --bg-dark: #0f0f0f;
+    --panel-dark: #1a1a1a;
+    --primary-purple: #7d2ae8;
+    --text-white: #ffffff;
+    --text-gray: #b3b3b3;
+    --danger: #ff4757;
+    --success: #2ed573;
+    --warning: #ffca28;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-white);
+    display: flex;
+    min-height: 100vh;
+}
+
+
+
+/* --- TABLO STİLLERİ --- */
+th {
+    vertical-align: middle; 
+}
+
+td {
+    vertical-align: middle; 
+}
+
+/* --- KULLANICI DETAY MODALI --- */
+.modal-content.user-detail-modal {
+    width: 90%;
+    max-width: 700px;
+    min-height: 450px;
+}
+
+.user-detail-body {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+    padding: 30px 20px;
+    justify-content: center;
+}
+
+.user-info-left {
+    flex: 1; 
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-right: 20px;
+    border-right: 1px solid #333;
+}
+
+.user-view-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: var(--primary-purple, #810CA8);
+    color: white;
+    font-size: 3rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 15px;
+    border: 2px solid #555;
+}
+
+.user-view-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-view-name {
+    font-size: 1.5rem;
+    color: var(--text-white, #fff);
+    margin-bottom: 15px;
+}
+
+.user-info-right {
+    flex: 2; 
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.user-info-box {
+    background-color: #222;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #333;
+}
+
+.user-info-box p {
+    margin: 5px 0;
+    color: var(--text-gray, #bbb);
+}
+
+.user-info-box span {
+    color: var(--text-white, #fff);
+    font-weight: 600;
+}
+
+.btn-remove-avatar {
+    background-color: var(--danger, #ff4757);
+    color: white;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 10px;
+    transition: 0.2s;
+}
+
+.btn-remove-avatar:hover {
+    background-color: #d1303f;
+}
+
+@media (max-width: 768px) {
+    .user-info-left {
+        border-right: none;
+        border-bottom: 1px solid #333;
+        padding-bottom: 30px;
+    }
+}
+
+/* --- SIRALAMA & TABLO --- */
+.sortable-header {
+    display: flex; 
+    align-items: center;
+    gap: 5px; 
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit; 
+}
+
+thead th a {
+    padding: 15px 0; 
+    margin: -15px 0; 
+}
+
+.sortable-header i.fas {
+    font-size: 0.8rem;
+    transition: transform 0.2s;
+}
+
+.avatar-cell {
+    width: 100px;
+    padding: 5px !important;
+    text-align: center; 
+    vertical-align: middle; 
+}
+
+.user-avatar {
+    margin: 0 auto; 
+}
+
+
+
+/* --- SIDEBAR --- */
+.sidebar {
+    z-index: 9999;
+    position: fixed;
+    width: 260px;
+    min-height: 100vh;
+    max-height: 100vh;
+    background-color: var(--panel-dark);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #333;
+}
+
+.brand {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0 auto 40px auto;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    gap: 10px;
+}
+
+.brand img {
+    width: 200px;
+    height: 35px;
+}
+
+.brand i { color: var(--primary-purple); }
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    color: var(--text-gray);
+    text-decoration: none;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    transition: 0.3s;
+}
+
+.menu-item:hover, .menu-item.active {
+    background-color: var(--primary-purple);
+    color: white;
+    box-shadow: 0 4px 15px rgba(125, 42, 232, 0.4);
+}
+
+.menu-item i { margin-right: 15px; width: 20px; text-align: center; }
+
+.menu-bottom {
+    margin-top: auto; 
+    padding-top: 10px; 
+}
+
+.logout-link {
+    color: #ff4757 !important; 
+    margin-bottom: 0 !important; 
+}
+
+.home-link {
+    margin-bottom: 5px; 
+    opacity: 0.8;
+}
+
+/* --- ANA İÇERİK --- */
+.main-content {
+    flex: 1;
+    padding: 30px;
+    margin-left: 260px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.admin-profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--panel-dark);
+    padding: 8px 15px;
+    border-radius: 30px;
+    border: 1px solid #333;
+}
+
+/* --- ADMIN AVATAR --- */
+.admin-avatar {
+    width: 35px;
+    height: 35px;
+    background-color: var(--primary-purple);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    color: white;
+    overflow: hidden; 
+}
+
+.admin-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    display: block; 
+}
+
+.admin-avatar span {
+    font-size: 16px; 
+}
+
+/* --- TABLE AVATAR --- */
+.avatar-cell {
+    width: 60px; 
+    padding: 5px !important;
+    text-align: center;
+}
+
+.user-avatar {
+    width: 35px; 
+    height: 35px;
+    border-radius: 50%;
+    background-color: var(--primary-purple, #810CA8); 
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin: 0 auto; 
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; 
+    display: block;
+}
+
+/* --- İSTATİSTİKLER --- */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.stat-card {
+    background-color: var(--panel-dark);
+    padding: 25px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid #333;
+    transition: transform 0.2s;
+}
+
+.stat-card:hover { transform: translateY(-5px); }
+
+.stat-info h3 { font-size: 32px; margin-bottom: 5px; color: white; }
+.stat-info p { color: var(--text-gray); font-size: 14px; }
+
+.stat-icon {
+    font-size: 40px;
+    color: var(--primary-purple);
+    opacity: 0.8;
+}
+
+/* --- TABLO TASARIMI --- */
+.recent-section h2 { margin-bottom: 20px; font-weight: 600; }
+
+.table-container {
+    background-color: var(--panel-dark);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid #333;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+th {
+    background-color: #252525;
+    padding: 15px;
+    color: var(--text-gray);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+td {
+    padding: 15px;
+    border-bottom: 1px solid #333;
+    color: white;
+}
+
+tr:last-child td { border-bottom: none; }
+tr:hover { background-color: #222; }
+
+/* --- DURUM ROZETLERİ --- */
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+.status-user { background: rgba(46, 213, 115, 0.2); color: var(--success); }
+.status-admin { background: rgba(175, 71, 255, 0.2); color: rgba(175, 71, 255, 1); }
+.status-pending { background: rgba(255, 202, 40, 0.2); color: var(--warning); }
+
+/* --- BUTONLAR --- */
+.action-btn {
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    color: white;
+    font-size: 12px;
+    transition: 0.2s;
+}
+.btn-edit { background-color: #3742fa; margin-right: 5px; }
+.btn-delete { background-color: var(--danger); }
+
+.btn-edit:hover { opacity: 0.8; }
+.btn-delete:hover { opacity: 0.8; }
+
+/* --- ANİMASYON --- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}

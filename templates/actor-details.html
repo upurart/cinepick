@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}{{ actor.name }} - CinePick{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/actor-details.css') }}">
+
+<div class="actor-page-container">
+    
+    <div class="actor-header">
+        <div class="actor-poster-wrapper">
+            <img src="{{ actor.profile_path }}" alt="{{ actor.name }}" class="actor-poster">
+        </div>
+        
+        <div class="actor-info">
+            <h1 class="actor-name">{{ actor.name }}</h1>
+            
+            <div class="actor-meta">
+                {% if actor.birthday != "Bilinmiyor" %}
+                    <div class="meta-item">
+                        <span class="label">Doğum Tarihi:</span>
+                        <span class="value">{{ actor.birthday }}</span>
+                    </div>
+                {% endif %}
+                
+                {% if actor.deathday %}
+                    <div class="meta-item">
+                        <span class="label">Ölüm Tarihi:</span>
+                        <span class="value">{{ actor.deathday }}</span>
+                    </div>
+                {% endif %}
+
+                {% if actor.place_of_birth %}
+                    <div class="meta-item">
+                        <span class="label">Doğum Yeri:</span>
+                        <span class="value">{{ actor.place_of_birth }}</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="actor-biography">
+                <h3>Biyografi</h3>
+                <p id="bio-text" class="collapsed">{{ actor.biography }}</p>
+                {% if actor.biography|length > 400 %}
+                    <button id="read-more-btn" onclick="toggleBio()">Devamını Oku</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if actor.known_for %}
+    <div class="section-container">
+        <h2 class="section-title"><i class="fas fa-star"></i> Bilinen Yapımlar</h2>
+        <div class="movies-grid">
+            {% for movie in actor.known_for %}
+            <div class="actor-movie-card" onclick="window.location.href='{{ url_for('content_detail', media_type=movie.media_type, id=movie.id) }}'">
+                {% if current_user.is_authenticated %}
+                    <div class="watchlist-btn">
+                        <button class="add-item-btn" 
+                                onclick="toggleCardWatchlist(event, this, '{{ movie.media_type }}', '{{ movie.id }}')"
+                                title="Listeye Ekle">
+                            <i class="{% if movie.in_watchlist %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                        </button>
+                    </div>
+                {% endif %}
+                
+                <div class="card-image-container">
+                    <img src="{{ movie.poster }}" alt="{{ movie.title }}" loading="lazy">
+                    <div class="card-rating-badge">
+                        <i class="fas fa-star"></i> {{ movie.rating }}
+                    </div>
+                </div>
+
+                <div class="card-text-content">
+                    <h3 class="movie-title">{{ movie.title }}</h3>
+                    <p class="movie-date">{{ movie.release_date }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="section-container">
+        <h2 class="section-title"><i class="fas fa-film"></i> Filmografi</h2>
+        <div class="filmography-list">
+            <div class="filmo-header">
+                <span class="col-year">Yıl</span>
+                <span class="col-movie">Yapım</span>
+                <span class="col-role">Karakter</span>
+            </div>
+            
+            {% for movie in actor.filmography %}
+            <div class="filmo-row">
+                <span class="col-year">{{ movie.year }}</span>
+                <span class="col-movie">
+                    <a href="{{ url_for('content_detail', media_type=movie.media_type, id=movie.id) }}">{{ movie.title }}</a>
+                </span>
+                <span class="col-role">
+                    {% if movie.character %}
+                        {{ movie.character }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/actor-details.js') }}"></script>
+
+{% endblock %}

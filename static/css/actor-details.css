@@ -1,0 +1,299 @@
+/* --- GLOBAL SETTINGS --- */
+:root {
+    --primary-purple: #810CA8;
+    --dark-bg: #141414;
+    --card-bg: #1f1f1f;
+    --text-white: #ffffff;
+    --text-gray: #b3b3b3;
+    --accent-pink: #C147E9;
+}
+
+body {
+    background: var(--bg-darker-gray);
+}
+
+.actor-page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    color: var(--text-white);
+}
+
+/* --- HEADER --- */
+.actor-header {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 60px;
+    background: linear-gradient(to right, rgba(20,20,20,0.9), rgba(45,3,59,0.3));
+    padding: 30px;
+    border-radius: 20px;
+}
+
+.actor-poster-wrapper {
+    flex-shrink: 0;
+    width: 300px;
+}
+
+.actor-poster {
+    width: 100%;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(129, 12, 168, 0.3);
+}
+
+.actor-info {
+    flex-grow: 1;
+}
+
+.actor-name {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    background: linear-gradient(45deg, #fff, var(--accent-pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* --- META DATA --- */
+.actor-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+.meta-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 10px 15px;
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-purple);
+}
+
+.meta-item .label {
+    color: var(--text-gray);
+    font-size: 0.9rem;
+    display: block;
+}
+
+.meta-item .value {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* --- BIOGRAPHY --- */
+.actor-biography h3 {
+    color: var(--primary-purple);
+    margin-bottom: 15px;
+}
+
+.actor-biography p {
+    line-height: 1.6;
+    color: #ddd;
+}
+
+.actor-biography p.collapsed {
+    display: -webkit-box;
+    -webkit-line-clamp: 6; 
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+#read-more-btn {
+    background: none;
+    border: none;
+    color: var(--accent-pink);
+    cursor: pointer;
+    margin-top: 10px;
+    font-weight: bold;
+    padding: 0;
+}
+
+/* --- SECTION GENERAL --- */
+.section-container {
+    margin-bottom: 60px;
+}
+
+.section-title {
+    font-size: 2rem;
+    margin-bottom: 25px;
+    padding-left: 15px;
+}
+
+/* --- FILMOGRAPHY TABLE --- */
+.filmography-list {
+    background-color: var(--card-bg);
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.filmo-header {
+    display: grid;
+    grid-template-columns: 80px 1fr 1fr;
+    padding: 20px;
+    background-color: rgba(129, 12, 168, 0.2);
+    font-weight: bold;
+    color: var(--accent-pink);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.filmo-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 1fr;
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    transition: background 0.3s;
+}
+
+.filmo-row:last-child {
+    border-bottom: none;
+}
+
+.filmo-row:hover {
+    background-color: rgba(255,255,255,0.05);
+}
+
+.col-year {
+    color: var(--text-gray);
+    font-family: monospace;
+    font-size: 1.1rem;
+}
+
+.col-movie a {
+    color: var(--text-white);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.col-movie a:hover {
+    color: var(--accent-pink);
+}
+
+.col-role {
+    color: var(--text-gray);
+    font-style: italic;
+}
+
+/* --- MOVIE GRID --- */
+.movies-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); 
+    gap: 20px;
+}
+
+.actor-movie-card {
+    position: relative;
+    background-color: transparent;
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.actor-movie-card:hover {
+    transform: translateY(-5px);
+    background-color: var(--bg-dark-gray);
+}
+
+.watchlist-btn {
+    left: 10px;
+}
+
+.actor-movie-card:hover .watchlist-btn {
+    opacity: 1;
+    visibility: visible;
+}   
+
+/* --- CARD VISUALS --- */
+.card-image-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 2/3;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+
+.card-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.card-rating-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.75);
+    color: #FFC107;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    backdrop-filter: blur(2px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 2;
+}
+
+/* --- CARD TEXT --- */
+.card-text-content {
+    padding-top: 12px;
+}
+
+.movie-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-white);
+    margin: 0 0 5px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.movie-date {
+    font-size: 0.85rem;
+    color: var(--text-gray);
+    margin: 0;
+}
+
+/* --- RESPONSIVE DESIGN --- */
+@media (max-width: 1024px) {
+    .movies-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .movies-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .actor-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .actor-poster-wrapper {
+        width: 200px;
+    }
+
+    .actor-meta {
+        justify-content: center;
+    }
+    
+    .filmo-header, .filmo-row {
+        grid-template-columns: 60px 1fr; 
+    }
+    
+    .col-role {
+        display: none;
+    }
+}
+
+@media (max-width: 500px) {
+    .movies-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+}

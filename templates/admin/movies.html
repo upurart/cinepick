@@ -1,0 +1,365 @@
+{% extends "admin/base.html" %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin-movies.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin-style.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="header">
+        <h2>Film & Dizi Yönetimi</h2>
+        <div class="admin-profile">
+            <span>{{ current_user.username if current_user.is_authenticated else 'Admin' }}</span>
+            <div class="admin-avatar">
+                {% if current_user.is_authenticated and current_user.avatar %}
+                    <img src="{{ url_for('static', filename='uploads/' + current_user.avatar) }}" alt="{{ current_user.username }} Avatar">
+                {% elif current_user.is_authenticated %}
+                    <span>{{ current_user.username[0] | upper }}</span>
+                {% else %}
+                    <span>A</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if total_pages is defined and total_pages > 1 %}
+    <div class="pagination-container" style="margin-bottom: 20px;">
+        <div class="page-btns">
+            <a href="{{ url_for('admin_movies', page=current_page - 1, q=search_query) }}"
+               class="page-btn {% if current_page <= 1 %}disabled{% endif %}">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <span class="page-info">
+                Sayfa {{ current_page }} / {{ total_pages }}
+            </span>
+            <a href="{{ url_for('admin_movies', page=current_page + 1, q=search_query) }}"
+               class="page-btn {% if current_page >= total_pages %}disabled{% endif %}">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="search-container">
+        <form id="search-form" action="{{ url_for('admin_movies') }}" method="GET" style="display:flex; width:100%; gap:10px;">
+            <input type="text" name="q" class="search-input" placeholder="Film veya Dizi Ara..." value="{{ search_query if search_query else '' }}">
+            <input type="hidden" name="page" id="search-page-input" value="{{ current_page if current_page else 1 }}">
+            <button type="submit" class="search-btn"><i class="fas fa-search"></i> Ara</button>
+            {% if search_query %}
+                <a href="{{ url_for('admin_movies') }}" class="btn-cancel" style="text-decoration:none; display:flex; align-items:center;">Temizle</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="table-container" id="movie-table-container">
+        <table>
+            <thead>
+                <tr>
+                    {% set next_sort_id = 'id_asc' if current_sort == 'id_desc' else None if current_sort == 'id_asc' else 'id_desc' %}
+                    <th style="width: 80px;">
+                        <a href="{{ url_for('admin_movies', page=1, q=search_query, sort=next_sort_id) }}" class="sortable-header">
+                            ID
+                            {% if current_sort == 'id_desc' %}<i class="fas fa-chevron-down"></i>
+                            {% elif current_sort == 'id_asc' %}<i class="fas fa-chevron-up"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th style="width: 80px;">Poster</th>
+
+                    {% set next_sort_title = 'title_desc' if current_sort == 'title_asc' else None if current_sort == 'title_desc' else 'title_asc' %}
+                    <th>
+                        <a href="{{ url_for('admin_movies', page=1, q=search_query, sort=next_sort_title) }}" class="sortable-header">
+                            İsim / Orijinal İsim
+                            {% if current_sort == 'title_asc' %}<i class="fas fa-chevron-down"></i>
+                            {% elif current_sort == 'title_desc' %}<i class="fas fa-chevron-up"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+
+                    {% set next_sort_type = 'type_tv' if current_sort == 'type_movie' else None if current_sort == 'type_tv' else 'type_movie' %}
+                    <th>
+                        <a href="{{ url_for('admin_movies', page=1, q=search_query, sort=next_sort_type) }}" class="sortable-header">
+                            Tür
+                            {% if current_sort == 'type_movie' %}<i class="fas fa-chevron-down"></i>
+                            {% elif current_sort == 'type_tv' %}<i class="fas fa-chevron-up"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+
+                    {% set next_sort_status = 'status_hidden' if current_sort == 'status_active' else None if current_sort == 'status_hidden' else 'status_active' %}
+                    <th>
+                        <a href="{{ url_for('admin_movies', page=1, q=search_query, sort=next_sort_status) }}" class="sortable-header">
+                            Durum
+                            {% if current_sort == 'status_active' %}<i class="fas fa-chevron-down"></i>
+                            {% elif current_sort == 'status_hidden' %}<i class="fas fa-chevron-up"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+                    <th>İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if movies %}
+                    {% for m in movies %}
+                    <tr class="movie-row" data-id="{{ m.id }}" data-type="{{ m.media_type }}" data-title="{{ m.title | replace('"', '\"') }}" data-poster="{{ m.poster }}" data-overview="{{ m.overview | replace('"', '\"') }}" data-hidden="{{ 'true' if m.is_hidden else 'false' }}" data-action="open-modal">
+                        <td>#{{ m.id }}</td>
+                        <td class="poster-cell">
+                            <img src="{{ m.poster }}" alt="poster">
+                        </td>
+                        <td class="title-cell">
+                            {{ m.title }}
+                        </td>
+                        <td>
+                            {% if m.media_type == 'movie' %}
+                                <span class="type-badge type-movie">FİLM</span>
+                            {% else %}
+                                <span class="type-badge type-tv">DİZİ</span>
+                            {% endif %}
+                        </td>
+                        <td id="status-text-{{ m.id }}">
+                            {% if m.is_hidden %}
+                                <span class="status-badge status-banned">Gizli</span>
+                            {% else %}
+                                <span class="status-badge status-active">Yayında</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="visibility-btn {{ 'vis-hidden' if m.is_hidden else 'vis-visible' }}"
+                                    id="btn-icon-{{ m.id }}"
+                                    title="Gizle/Göster"
+                                    data-action="toggle-visibility">
+                                <i class="fas {{ 'fa-eye-slash' if m.is_hidden else 'fa-eye' }}"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align:center; padding:30px; color:#777;">
+                            Sonuç bulunamadı. Lütfen arama yapın.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total_pages is defined and total_pages > 1 %}
+    <div class="pagination-container">
+        <div class="page-btns">
+            <a href="{{ url_for('admin_movies', page=current_page - 1, q=search_query) }}"
+               class="page-btn {% if current_page <= 1 %}disabled{% endif %}">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            <span class="page-info">
+                Sayfa {{ current_page }} / {{ total_pages }}
+            </span>
+            <a href="{{ url_for('admin_movies', page=current_page + 1, q=search_query) }}"
+               class="page-btn {% if current_page >= total_pages %}disabled{% endif %}">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="modal-overlay" id="movieModal" style="display: none;">
+        <div class="modal-content" style="width: 600px;">
+            <div class="modal-header">
+                <h3>İçerik Detayları</h3>
+                <button class="close-modal" data-action="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="movie-modal-layout">
+                    <div class="modal-poster">
+                        <img id="modalPoster" src="" alt="Poster">
+                    </div>
+                    <div class="modal-info">
+                        <h2 id="modalTitle">Film Başlığı</h2>
+                        <div class="info-row">
+                            <span class="info-label">ID / TÜR</span>
+                            <span id="modalIdType">12345 / FİLM</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">AÇIKLAMA</span>
+                            <div id="modalOverview" style="max-height: 150px; overflow-y: auto;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" data-action="close-modal">Kapat</button>
+                    <button id="modalToggleBtn" data-action="modal-toggle-visibility">
+                        <i class="fas fa-eye-slash"></i> <span>Siteden Gizle</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    let currentMovie = { id: null, type: null, title: null, hidden: false };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Arama yapıldığında sayfa numarasını sıfırlar
+        const searchForm = document.getElementById('search-form');
+        if (searchForm) {
+            searchForm.addEventListener('submit', function(e) {
+                const pageInput = document.getElementById('search-page-input');
+                if (pageInput) {
+                    pageInput.value = '1';
+                }
+            });
+        }
+    });
+
+    // Satırdan verileri alıp modalı açar
+    function openMovieModal(row) {
+        if (!row || row.tagName !== 'TR') {
+            return;
+        }
+
+        const rowData = {
+            id: row.getAttribute('data-id'),
+            type: row.getAttribute('data-type'),
+            title: row.getAttribute('data-title'),
+            poster: row.getAttribute('data-poster'),
+            overview: row.getAttribute('data-overview'),
+            hidden: row.getAttribute('data-hidden') === 'true'
+        };
+
+        try {
+            rowData.title = rowData.title.replace(/\\"/g, '"');
+            rowData.overview = rowData.overview.replace(/\\"/g, '"');
+        } catch (e) {
+            console.warn("Veri temizleme hatası:", e);
+        }
+
+        currentMovie = rowData;
+
+        document.getElementById('modalPoster').src = rowData.poster;
+        document.getElementById('modalTitle').textContent = rowData.title;
+        document.getElementById('modalIdType').textContent = `#${rowData.id} / ${rowData.type === 'movie' ? 'FİLM' : 'DİZİ'}`;
+        document.getElementById('modalOverview').textContent = rowData.overview || "Açıklama bulunmuyor.";
+
+        updateModalButtonState();
+
+        document.getElementById('movieModal').classList.add('is-active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Modalı kapatır
+    function closeMovieModal() {
+        document.getElementById('movieModal').classList.remove('is-active');
+        document.body.style.overflow = '';
+    }
+
+    // İçeriğin gizlilik durumunu AJAX ile değiştirir
+    window.toggleContentVisibility = function() {
+        if(!currentMovie.id) return;
+
+        closeMovieModal();
+
+        fetch('/admin/toggle_visibility', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: currentMovie.id,
+                media_type: currentMovie.type,
+                title: currentMovie.title
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            const isNowHidden = data.status === 'hidden';
+            currentMovie.hidden = isNowHidden;
+
+            const row = document.querySelector(`.movie-row[data-id="${currentMovie.id}"]`);
+            if(row) {
+                row.setAttribute('data-hidden', isNowHidden ? 'true' : 'false');
+
+                const statusCell = document.getElementById(`status-text-${currentMovie.id}`);
+                const iconBtn = row.querySelector(`button[data-action="toggle-visibility"]`);
+
+                if(isNowHidden) {
+                    statusCell.innerHTML = '<span class="status-badge status-banned">Gizli</span>';
+                    iconBtn.className = 'visibility-btn vis-hidden';
+                    iconBtn.querySelector('i').className = 'fas fa-eye-slash';
+                } else {
+                    statusCell.innerHTML = '<span class="status-badge status-active">Yayında</span>';
+                    iconBtn.className = 'visibility-btn vis-visible';
+                    iconBtn.querySelector('i').className = 'fas fa-eye';
+                }
+            }
+        })
+        .catch(error => console.error('Hata:', error));
+    }
+
+    // Tıklama olaylarını yönetir (Delegation)
+    document.addEventListener('click', (event) => {
+        const target = event.target;
+
+        // Gizle/Göster butonu tıklaması
+        const toggleButton = target.closest('[data-action="toggle-visibility"]');
+        if (toggleButton) {
+            const row = toggleButton.closest('tr');
+            event.stopPropagation();
+            
+            const id = row.getAttribute('data-id');
+            const type = row.getAttribute('data-type');
+            const title = row.getAttribute('data-title');
+            const hidden = row.getAttribute('data-hidden') === 'true';
+
+            currentMovie = { id, type, title, hidden };
+            window.toggleContentVisibility();
+            return;
+        }
+
+        // Tablo satırına tıklama (Modal açar)
+        const rowClicked = target.closest('.movie-row[data-action="open-modal"]');
+        if (rowClicked) {
+            if (!target.closest('[data-action="toggle-visibility"]')) {
+                openMovieModal(rowClicked);
+                return;
+            }
+        }
+
+        // Modalı kapatma (X veya Kapat butonu)
+        if (target.closest('[data-action="close-modal"]')) {
+            event.stopPropagation();
+            closeMovieModal();
+            return;
+        }
+
+        // Modal içindeki gizleme butonu
+        if (target.closest('[data-action="modal-toggle-visibility"]')) {
+            event.stopPropagation();
+            window.toggleContentVisibility();
+            return;
+        }
+
+        // Modal dışına (overlay) tıklama
+        const modal = document.getElementById('movieModal');
+        if (modal.classList.contains('is-active') && target === modal) {
+            closeMovieModal();
+        }
+    });
+
+    // Modal butonunun durumunu günceller
+    function updateModalButtonState() {
+        const btn = document.getElementById('modalToggleBtn');
+        btn.setAttribute('data-action', 'modal-toggle-visibility');
+
+        const icon = btn.querySelector('i');
+        const text = btn.querySelector('span');
+
+        if (currentMovie.hidden) {
+            btn.className = 'btn-toggle-hide is-hidden';
+            icon.className = 'fas fa-eye';
+            text.textContent = 'Yayına Al (Gizliliği Kaldır)';
+        } else {
+            btn.className = 'btn-toggle-hide is-visible';
+            icon.className = 'fas fa-eye-slash';
+            text.textContent = 'Siteden Gizle';
+        }
+    }
+</script>
+{% endblock %}

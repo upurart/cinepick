@@ -1,0 +1,539 @@
+{% extends "admin/base.html" %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin-users.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin-style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin-user-edit.css') }}">
+{% endblock %}
+
+{% block content %}
+
+    <div class="header">
+        <h2>Kullanıcı Yönetimi</h2>
+        <div class="admin-profile">
+            <span>{{ current_user.username if current_user.is_authenticated else 'Admin' }}</span>
+            <div class="admin-avatar">
+                {% if current_user.is_authenticated and current_user.avatar %}
+                    <img src="{{ url_for('static', filename='uploads/' + current_user.avatar) }}" alt="{{ current_user.username }} Avatar">
+                {% elif current_user.is_authenticated %}
+                    <span>{{ current_user.username[0] | upper }}</span>
+                {% else %}
+                    <span>A</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {% if total_pages > 1 %}
+    <div class="pagination-container" style="margin-bottom: 20px;">
+        <div class="page-btns">
+            <a href="{{ url_for('admin_users', page=current_page - 1, q=search_query, sort=current_sort) }}"
+               class="page-btn {% if current_page <= 1 %}disabled{% endif %}">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+
+            <span class="page-info">
+                Sayfa {{ current_page }} / {{ total_pages }}
+            </span>
+
+            <a href="{{ url_for('admin_users', page=current_page + 1, q=search_query, sort=current_sort) }}"
+               class="page-btn {% if current_page >= total_pages %}disabled{% endif %}">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="search-container">
+        <form id="search-form" action="{{ url_for('admin_users') }}" method="GET" style="display:flex; width:100%; gap:10px;">
+            <input type="text" name="q" class="search-input" placeholder="Kullanıcı Adı veya E-posta Ara..." value="{{ search_query if search_query else '' }}">
+            <input type="hidden" name="page" id="search-page-input" value="1">
+            <input type="hidden" name="sort" value="{{ current_sort if current_sort else '' }}">
+            <button type="submit" class="search-btn"><i class="fas fa-search"></i> Ara</button>
+            {% if search_query %}
+                <a href="{{ url_for('admin_users') }}" class="btn-cancel" style="text-decoration:none; display:flex; align-items:center;">Temizle</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div class="table-container" id="user-table-container">
+        <table>
+            <thead>
+                <tr>
+                    {% set next_sort_id = 'id_asc' if current_sort == 'id_desc' else None if current_sort == 'id_asc' else 'id_desc' %}
+                    <th style="width: 80px;">
+                        <a href="{{ url_for('admin_users', page=1, q=search_query, sort=next_sort_id) }}" class="sortable-header">
+                            ID
+                            {% if current_sort == 'id_desc' %}<i class="fas fa-chevron-down"></i>
+                            {% elif current_sort == 'id_asc' %}<i class="fas fa-chevron-up"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+
+                    <th style="width: 100px; text-align: center;">Avatar</th>
+
+                    {% set next_sort_username = 'username_desc' if current_sort == 'username_asc' else None if current_sort == 'username_desc' else 'username_asc' %}
+                    <th style="width: 200px;">
+                        <a href="{{ url_for('admin_users', page=1, q=search_query, sort=next_sort_username) }}" class="sortable-header">
+                            Kullanıcı Adı
+                            {% if current_sort == 'username_asc' %}<i class="fas fa-chevron-down"></i>
+                            {% elif current_sort == 'username_desc' %}<i class="fas fa-chevron-up"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+
+                    {% set next_sort_email = 'email_desc' if current_sort == 'email_asc' else None if current_sort == 'email_desc' else 'email_asc' %}
+                    <th>
+                        <a href="{{ url_for('admin_users', page=1, q=search_query, sort=next_sort_email) }}" class="sortable-header">
+                            E-posta
+                            {% if current_sort == 'email_asc' %}<i class="fas fa-chevron-down"></i>
+                            {% elif current_sort == 'email_desc' %}<i class="fas fa-chevron-up"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+
+                    {% set next_sort_admin = 'admin_desc' if current_sort == 'admin_asc' else None if current_sort == 'admin_desc' else 'admin_asc' %}
+                    <th>
+                        <a href="{{ url_for('admin_users', page=1, q=search_query, sort=next_sort_admin) }}" class="sortable-header">
+                            Yetki
+                            {% if current_sort == 'admin_asc' %}<i class="fas fa-chevron-down"></i>
+                            {% elif current_sort == 'admin_desc' %}<i class="fas fa-chevron-up"></i>
+                            {% endif %}
+                        </a>
+                    </th>
+
+                    <th style="width: 120px;">Kayıt Tarihi</th>
+                    <th style="width: 120px;">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if users %}
+                    {% for u in users %}
+                    <tr data-user-id="{{ u.id }}" data-username="{{ u.username }}" data-email="{{ u.email }}" data-is-admin="{{ 'true' if u.is_admin else 'false' }}"
+                        data-days-active="{{ u.days_active }}"
+                        onclick="openUserViewModal('{{ u.id }}')" style="cursor: pointer;">
+                        <td>#{{ u.id }}</td>
+
+                        <td class="avatar-cell">
+                            <div class="user-avatar">
+                                {% if u.avatar %}
+                                    <img src="{{ url_for('static', filename='uploads/' + u.avatar) }}" alt="{{ u.username }} Avatar">
+                                {% else %}
+                                    <span>{{ u.username[0] | upper }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+
+                        <td class="title-cell">{{ u.username }}</td>
+                        <td>{{ u.email }}</td>
+                        <td>
+                            {% if u.is_admin %}
+                                <span class="status-badge status-admin">Admin</span>
+                            {% else %}
+                                <span class="status-badge status-user">Kullanıcı</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ u.created_at.strftime('%d.%m.%Y') }}</td>
+                        <td>
+                            <button class="action-btn btn-edit" title="Düzenle" onclick="openEditModal('{{ u.id }}'); event.stopPropagation();">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            {% if u.id != current_user.id %}
+                            <button class="action-btn btn-delete" title="Sil" onclick="deleteUser('{{ u.id }}', '{{ u.username }}'); event.stopPropagation();">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align:center; color:#777;">
+                            Kullanıcı bulunamadı.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if total_pages > 1 %}
+    <div class="pagination-container">
+        <div class="page-btns">
+            <a href="{{ url_for('admin_users', page=current_page - 1, q=search_query, sort=current_sort) }}"
+               class="page-btn {% if current_page <= 1 %}disabled{% endif %}">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+
+            <span class="page-info">
+                Sayfa {{ current_page }} / {{ total_pages }}
+            </span>
+
+            <a href="{{ url_for('admin_users', page=current_page + 1, q=search_query, sort=current_sort) }}"
+               class="page-btn {% if current_page >= total_pages %}disabled{% endif %}">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Kullanıcı Düzenle: <span id="modalUsernameDisplay"></span></h3>
+                <button class="close-modal" onclick="closeEditModal()">&times;</button>
+            </div>
+
+            <form id="editForm" method="POST">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Kullanıcı Adı</label>
+                        <input type="text" name="username" id="editUsername" class="form-input" required autocomplete="off">
+                    </div>
+
+                    <div class="form-group">
+                        <label>E-posta</label>
+                        <input type="email" name="email" id="editEmail" class="form-input" required autocomplete="off">
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <input type="checkbox" name="is_admin" id="editIsAdmin">
+                        <label for="editIsAdmin">Admin Yetkisi Ver</label>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeEditModal()">İptal</button>
+                    <button type="submit" class="btn-save">Değişiklikleri Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="userViewModal">
+        <div class="modal-content user-detail-modal">
+            <div class="modal-header">
+                <h3>Kullanıcı Detayları</h3>
+                <button class="close-modal" onclick="closeUserViewModal()">&times;</button>
+            </div>
+
+            <div class="user-detail-body">
+                <div class="user-info-left">
+                    <div id="userViewAvatarWrapper" class="user-view-avatar"></div>
+                    <h1 id="userViewUsername" class="user-view-name"></h1>
+                    <button id="removeAvatarBtn" class="btn-remove-avatar">Avatarı Kaldır</button>
+                </div>
+
+                <div class="user-info-right">
+                    <div class="user-info-box">
+                        <p>ID: <span id="userViewId"></span></p>
+                        <p>Email: <span id="userViewEmail"></span></p>
+                        <p>Yetki: <span id="userViewRole"></span></p>
+                    </div>
+
+                    <div class="user-info-box">
+                        <p>Kayıt olduğu tarih: <span id="userViewCreatedAt"></span></p>
+                    </div>
+
+                    <div class="user-info-box">
+                        <p>Kaç gündür kayıtlı: <span id="userViewDaysActive"></span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="removeAvatarConfirmModal">
+        <div class="modal-content" style="width: 380px;">
+            <div class="modal-header">
+                <h3>Avatar Kaldırma Onayı</h3>
+                <button class="close-modal" onclick="closeRemoveAvatarConfirmModal()">&times;</button>
+            </div>
+
+            <div class="modal-body" style="text-align: center;">
+                <p style="color: #ff4757; font-weight: 600;">
+                    <span id="confirmAvatarUsername" style="color: #fff;"></span> adlı kullanıcının profil fotoğrafı KALDIRILACAKTIR.
+                </p>
+            </div>
+
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button type="button" class="btn-cancel" onclick="closeRemoveAvatarConfirmModal()">Vazgeç</button>
+                <button type="button" class="btn-danger" id="confirmRemoveButton">Evet, Kaldır</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-header">
+                <h3>Kullanıcı Silme Onayı</h3>
+                <button class="close-modal" onclick="closeDeleteConfirmModal()">&times;</button>
+            </div>
+
+            <div class="modal-body" style="text-align: center;">
+                <p style="color: #ff4757; font-weight: 600;">
+                    <span id="confirmDeleteUsername" style="color: #fff;"></span> adlı kullanıcıyı silmek istediğinizden emin misiniz?
+                </p>
+                <p style="margin-top: 10px; font-size: 13px; color: #888;">
+                    Bu işlem, kullanıcının tüm verilerini kalıcı olarak silecektir.
+                </p>
+            </div>
+
+            <div class="modal-footer" style="justify-content: space-between;">
+                <button type="button" class="btn-cancel" onclick="closeDeleteConfirmModal()">İptal</button>
+                <button type="button" class="btn-danger" id="confirmDeleteButton">Evet, Sil</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // Global değişkenler ve URL tanımları
+    const EDIT_BASE_URL = "{{ url_for('edit_user', user_id='0') }}";
+    const DELETE_BASE_URL = "{{ url_for('delete_user', user_id='0') }}";
+
+    let currentUserIdToRemoveAvatar = null;
+    let currentUsernameToRemoveAvatar = null;
+    let currentUserIdToDelete = null;
+    let currentUsernameToDelete = null;
+
+    // Sayfa yüklendiğinde çalışacak olay dinleyicileri
+    document.addEventListener('DOMContentLoaded', () => {
+        // Arama yapıldığında sayfa numarasını 1'e sıfırla
+        const searchForm = document.getElementById('search-form');
+        if (searchForm) {
+            searchForm.addEventListener('submit', function(e) {
+                const pageInput = document.getElementById('search-page-input');
+                if (pageInput) {
+                    pageInput.value = '1';
+                }
+            });
+        }
+
+        // Onay butonlarına tıklama olaylarını bağla
+        const confirmBtn = document.getElementById('confirmRemoveButton');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', executeRemoveAvatar);
+        }
+
+        const deleteConfirmBtn = document.getElementById('confirmDeleteButton');
+        if (deleteConfirmBtn) {
+            deleteConfirmBtn.addEventListener('click', executeDeleteUser);
+        }
+    });
+
+    // --- Düzenleme Modalı İşlemleri ---
+
+    function openEditModal(userId) {
+        const row = document.querySelector(`tr[data-user-id="${userId}"]`);
+        const modal = document.getElementById('editModal');
+        const form = document.getElementById('editForm');
+
+        if (!row || !modal || !form) return;
+
+        const username = row.getAttribute('data-username');
+        const email = row.getAttribute('data-email');
+        const isAdmin = row.getAttribute('data-is-admin') === 'true';
+
+        document.getElementById('modalUsernameDisplay').textContent = username;
+        document.getElementById('editUsername').value = username;
+        document.getElementById('editEmail').value = email;
+        document.getElementById('editIsAdmin').checked = isAdmin;
+
+        form.action = EDIT_BASE_URL.replace('/0', '/' + userId);
+
+        modal.classList.add('is-active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEditModal() {
+        document.getElementById('editModal').classList.remove('is-active');
+        document.body.style.overflow = '';
+    }
+
+    // --- Silme İşlemleri ---
+
+    window.deleteUser = function(userId, username) {
+        currentUserIdToDelete = userId;
+        currentUsernameToDelete = username;
+        openDeleteConfirmModal(username);
+    }
+
+    function openDeleteConfirmModal(username) {
+        document.getElementById('confirmDeleteUsername').textContent = username;
+        const modal = document.getElementById('deleteConfirmModal');
+        modal.classList.add('is-active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDeleteConfirmModal() {
+        document.getElementById('deleteConfirmModal').classList.remove('is-active');
+        document.body.style.overflow = '';
+    }
+
+    function executeDeleteUser() {
+        closeDeleteConfirmModal();
+
+        if (!currentUserIdToDelete) return;
+
+        const finalDeleteUrl = DELETE_BASE_URL.replace('/0', '/' + currentUserIdToDelete);
+
+        fetch(finalDeleteUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+                return null;
+            } else {
+                return response.json();
+            }
+        })
+        .then(data => {
+            if(data && data.message) {
+                alert(data.message);
+                if (data.status === 'success') {
+                    window.location.reload();
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Silme hatası:', error);
+            alert('Silme işleminde beklenmedik bir hata oluştu.');
+        });
+    }
+
+    // --- Avatar Kaldırma İşlemleri ---
+
+    function openRemoveAvatarConfirmModal(userId, username) {
+        currentUserIdToRemoveAvatar = userId;
+        currentUsernameToRemoveAvatar = username;
+
+        document.getElementById('confirmAvatarUsername').textContent = username;
+
+        // Modal içeriğini varsayılan onay durumuna sıfırla
+        const confirmModal = document.getElementById('removeAvatarConfirmModal');
+        confirmModal.querySelector('.modal-header h3').textContent = 'Avatar Kaldırma Onayı';
+        confirmModal.querySelector('.modal-body p').innerHTML = `
+            <span id="confirmAvatarUsername" style="color: #fff;">${username}</span> adlı kullanıcının profil fotoğrafı KALDIRILACAKTIR.
+        `;
+        confirmModal.querySelector('.modal-body p').style.color = '#ff4757';
+        confirmModal.querySelector('.modal-body p').style.fontWeight = '600';
+        confirmModal.querySelector('.modal-footer').innerHTML = `
+            <button type="button" class="btn-cancel" onclick="closeRemoveAvatarConfirmModal()">Vazgeç</button>
+            <button type="button" class="btn-danger" id="confirmRemoveButton">Evet, Kaldır</button>
+        `;
+        
+        // Event listener'ı tekrar bağla (innerHTML değiştiği için)
+        document.getElementById('confirmRemoveButton').addEventListener('click', executeRemoveAvatar, {once: true});
+
+        confirmModal.classList.add('is-active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeRemoveAvatarConfirmModal() {
+        document.getElementById('removeAvatarConfirmModal').classList.remove('is-active');
+        document.body.style.overflow = '';
+    }
+
+    function showResultModal(message, isSuccess) {
+        const modal = document.getElementById('removeAvatarConfirmModal');
+        const header = modal.querySelector('.modal-header h3');
+        const body = modal.querySelector('.modal-body');
+        const footer = modal.querySelector('.modal-footer');
+
+        header.textContent = isSuccess ? 'İşlem Başarılı' : 'Hata';
+        body.innerHTML = `<p style="color: ${isSuccess ? '#2ed573' : '#ff4757'}; font-weight: bold; text-align: center;">${message}</p>`;
+        footer.innerHTML = '<button type="button" class="btn-cancel" onclick="closeAndReloadIfSuccess(' + isSuccess + ')">Kapat</button>';
+
+        modal.classList.add('is-active');
+    }
+
+    function closeAndReloadIfSuccess(isSuccess) {
+        closeRemoveAvatarConfirmModal();
+        if (isSuccess) {
+            window.location.reload();
+        }
+    }
+
+    function executeRemoveAvatar() {
+        if (!currentUserIdToRemoveAvatar) return;
+
+        const userId = currentUserIdToRemoveAvatar;
+        closeRemoveAvatarConfirmModal();
+
+        const REMOVE_AVATAR_URL = `/remove_avatar/${userId}`;
+
+        fetch(REMOVE_AVATAR_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' || data.status === 'info') {
+                showResultModal(data.message, true);
+            } else {
+                showResultModal(data.message, false);
+            }
+        })
+        .catch(error => {
+            console.error('Avatar silme hatası:', error);
+            showResultModal('Avatar silinirken beklenmedik bir hata oluştu.', false);
+        });
+    }
+
+    // --- Kullanıcı Detay Modalı ---
+
+    function openUserViewModal(userId) {
+        const row = document.querySelector(`tr[data-user-id="${userId}"]`);
+        const modal = document.getElementById('userViewModal');
+
+        if (!row || !modal) return;
+
+        const username = row.getAttribute('data-username');
+        const email = row.getAttribute('data-email');
+        const isAdmin = row.getAttribute('data-is-admin') === 'true';
+        const daysActive = row.getAttribute('data-days-active');
+        const createdAt = row.querySelector('td:nth-child(6)').textContent.trim();
+        const avatarContainer = row.querySelector('.user-avatar');
+
+        const avatarHtml = avatarContainer ? avatarContainer.innerHTML : `<span>${username[0].toUpperCase()}</span>`;
+        const hasAvatar = avatarContainer && avatarContainer.querySelector('img') !== null;
+
+        document.getElementById('userViewId').textContent = '#' + userId;
+        document.getElementById('userViewEmail').textContent = email;
+        document.getElementById('userViewUsername').textContent = username;
+        document.getElementById('userViewRole').textContent = isAdmin ? 'Admin' : 'Kullanıcı';
+        document.getElementById('userViewCreatedAt').textContent = createdAt;
+        document.getElementById('userViewDaysActive').textContent = daysActive + ' gün';
+        document.getElementById('userViewAvatarWrapper').innerHTML = avatarHtml;
+
+        const removeBtn = document.getElementById('removeAvatarBtn');
+        removeBtn.onclick = function() {
+            openRemoveAvatarConfirmModal(userId, username);
+        };
+        removeBtn.style.display = hasAvatar ? 'block' : 'none';
+
+        modal.classList.add('is-active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeUserViewModal() {
+        document.getElementById('userViewModal').classList.remove('is-active');
+        document.body.style.overflow = '';
+    }
+
+    // --- Modal Dışı Tıklamayı Yönet ---
+    window.onclick = function(event) {
+        const editModal = document.getElementById('editModal');
+        const userViewModal = document.getElementById('userViewModal');
+        const removeAvatarConfirmModal = document.getElementById('removeAvatarConfirmModal');
+        const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+
+        if (event.target == editModal) closeEditModal();
+        if (event.target == userViewModal) closeUserViewModal();
+        if (event.target == removeAvatarConfirmModal) closeRemoveAvatarConfirmModal();
+        if (event.target == deleteConfirmModal) closeDeleteConfirmModal();
+    }
+</script>
+{% endblock %}

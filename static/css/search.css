@@ -1,0 +1,123 @@
+body {
+    background: var(--bg-darker-gray);
+    color: white;
+    font-family: 'Rajdhani', sans-serif;
+    margin: 0;
+}
+
+
+
+.search-title {
+    color: #fff;
+    border-bottom: 1px solid #333;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    margin-top: 40px;
+}
+
+/* --- Arama Sonuçları Izgara Yapısı --- */
+.search-movies-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Responsive grid */
+    gap: 20px;
+    padding: 20px 0;
+    margin-bottom: 40px;
+}
+
+/* --- Film Kartı Temel --- */
+.movie-card {
+    position: relative;
+    background: transparent;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+
+
+.movie-card:hover {
+    transform: translateY(-5px);
+    background: #1a1a1a; 
+}
+
+/* --- Watchlist Butonu --- */
+.watchlist-btn {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.movie-card:hover .watchlist-btn {
+    opacity: 1;
+    visibility: visible;
+}
+
+.add-item-btn {
+    background: rgba(0, 0, 0, 0.7);
+    border: none;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+/* --- Poster Alanı --- */
+.poster-container {
+    position: relative;
+    border-radius: 10px;
+    overflow: hidden;
+    aspect-ratio: 2/3;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+.poster-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* --- Puan Rozeti --- */
+.rating-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.8);
+    color: #ffcc00;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* --- Alt Bilgiler --- */
+.movie-info {
+    padding: 10px 5px;
+    text-align: left;
+}
+
+.movie-info h3 {
+    color: #fff;
+    margin: 5px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.movie-info .date {
+    color: #666;
+    font-size: 0.85rem;
+    margin: 0;
+    font-weight: 500;
+}

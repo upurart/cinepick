@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block title %}İzleme Listem - CinePick{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/all-movies.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-bottom: 40px;">
+    <h2 class="section-title" style="margin-top: 50px; margin-bottom: 30px;">
+        <i class="fas fa-bookmark"></i> İzleme Listen
+    </h2>
+
+    <div class="movies-grid" id="watchlist-grid">
+        {% for movie in movies %}
+        <div class="movie-card" onclick="window.location.href='{{ url_for('content_detail', media_type=movie.media_type, id=movie.id) }}'">
+            <div class="watchlist-btn">
+                <button class="remove-item-btn"
+                        onclick="removePageItem(event, '{{ movie.media_type }}', '{{ movie.id }}', this)"
+                        title="Listeden Kaldır">
+                    <i class="fas fa-bookmark"></i>
+                </button>
+            </div>
+            <div class="poster-container">
+                <img src="{{ movie.poster }}" alt="{{ movie.title }}">
+                <div class="rating-badge"><i class="fas fa-star"></i> {{ movie.rating }}</div>
+            </div>
+
+            <div class="movie-info">
+                <h3>{{ movie.title }}</h3>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 5px; color: #ccc; font-size: 0.9rem;">
+                    <span class="date">{{ movie.year }}</span>
+
+                    <span style="font-size: 0.7em; text-transform: uppercase; border: 1px solid #555; padding: 2px 5px; border-radius: 4px; color: #888;">
+                        {{ 'DİZİ' if movie.media_type == 'tv' else 'FİLM' }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="info-box-wrapper" id="watchlist-empty-state"
+         style="display: {{ 'none' if movies else 'block' }};">
+        <div class="info-box empty-list">
+            <i class="far fa-folder-open fa-3x"></i>
+            <h3>İzleme Listen Henüz Boş</h3>
+            <p>Filmleri keşfet ve beğendiklerini listene ekle!</p>
+            <a href="{{ url_for('all_movies') }}" class="info-btn secondary">Filmleri Keşfet</a>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function removePageItem(event, mediaType, movieId, btnElement) {
+        // Tıklama olayını durdur
+        event.stopPropagation();
+        event.preventDefault();
+
+        // Butonu pasif hale getir
+        btnElement.disabled = true;
+
+        // Silme isteğini gönder
+        fetch(`/remove_from_watchlist/${mediaType}/${movieId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'removed') {
+                // İkonu boş (far) olarak güncelle
+                const icon = btnElement.querySelector('i');
+                if (icon) {
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                }
+
+                // Kartı animasyonla kaldır
+                const card = btnElement.closest('.movie-card');
+                if (card) {
+                    card.style.transition = "all 0.3s ease";
+                    card.style.transformOrigin = "top left";
+                    card.style.opacity = "0";
+                    card.style.transform = "scale(0.5)";
+
+                    setTimeout(() => {
+                        card.remove();
+                        checkWatchlistState();
+                    }, 300);
+                }
+            } else {
+                alert("Hata: " + data.message);
+                btnElement.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            btnElement.disabled = false;
+        });
+    }
+
+    // Liste boşaldıysa bilgilendirme mesajını göster
+    function checkWatchlistState() {
+        const grid = document.getElementById('watchlist-grid');
+        const emptyState = document.getElementById('watchlist-empty-state');
+
+        if (grid && grid.children.length === 0) {
+            grid.style.display = 'none';
+            if (emptyState) {
+                emptyState.style.display = 'block';
+                emptyState.style.opacity = '0';
+                emptyState.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => emptyState.style.opacity = '1', 50);
+            }
+        }
+    }
+</script>
+{% endblock %}

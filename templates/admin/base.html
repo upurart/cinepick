@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CinePick Admin Paneli{% endblock %}</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/admin-style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    
+
+    <div class="sidebar">
+        <div class="brand">
+            <img src="{{url_for('static', filename='images/white.png')}}" alt="CinePick Logo">
+        </div>
+        
+        <a href="/admin" class="menu-item">
+            <i class="fas fa-th-large"></i> Dashboard
+        </a>
+        <a href="/admin/movies" class="menu-item">
+            <i class="fas fa-video"></i> Filmler
+        </a>
+        <a href="/admin/users" class="menu-item">
+            <i class="fas fa-users"></i> Kullanıcılar
+        </a>
+        
+        <div class="menu-bottom">
+            <a href="{{ url_for('home') }}" class="menu-item home-link">
+                <i class="fas fa-arrow-left"></i> Ana Sayfaya Dön
+            </a>
+            <a href="{{ url_for('logout') }}" class="menu-item logout-link">
+                <i class="fas fa-sign-out-alt"></i> Çıkış Yap
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+</body>
+</html>

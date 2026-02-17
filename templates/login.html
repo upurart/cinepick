@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CinePick - Giriş</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Rajdhani:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎬</text></svg>">
+</head>
+<body>
+
+<div class="container">
+
+    <div class="logo">
+        <img src="{{ url_for('static', filename='images/white.png') }}" alt="Logo">
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}" style="color: #ff4d4d; text-align: center; margin-bottom: 10px; font-weight: bold;">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="btn-box">
+        <div id="btn-highlight"></div>
+        <button type="button" class="toggle-btn" data-tab="login">Giriş Yap</button>
+        <button type="button" class="toggle-btn" data-tab="register">Kayıt Ol</button>
+    </div>
+
+    <form id="login-form" class="input-group" action="{{ url_for('login_page') }}" method="POST" novalidate>
+        <div class="input-wrapper">
+            <input type="text" id="login-user" name="username" class="input-field" placeholder="Kullanıcı Adı veya E-posta">
+            <div class="error-msg"></div>
+        </div>
+        <div class="input-wrapper">
+            <input type="password" id="login-pass" name="password" class="input-field" placeholder="Şifre">
+            <div class="error-msg"></div>
+        </div>
+        <button type="submit" class="submit-btn">Giriş Yap</button>
+
+        <div class="separator"><span>ya da</span></div>
+        <button type="button" class="guest-btn" onclick="window.location.href='/'">Misafir Olarak Devam Et</button>
+    </form>
+
+    <form id="register-form" class="input-group hidden" action="{{ url_for('register') }}" method="POST" novalidate>
+        <div class="input-wrapper">
+            <input type="text" id="reg-user" name="reg_username" class="input-field" placeholder="Kullanıcı Adı">
+            <div class="error-msg"></div>
+        </div>
+
+        <div class="input-wrapper">
+            <input type="email" id="reg-email" name="reg_email" class="input-field" placeholder="E-posta Adresi">
+            <div class="error-msg"></div>
+        </div>
+
+        <div class="input-wrapper">
+            <input type="password" id="reg-pass" name="reg_password" class="input-field" placeholder="Şifre">
+            <div class="error-msg"></div>
+        </div>
+
+        <button type="submit" class="submit-btn">Kayıt Ol</button>
+
+        <div class="separator"><span>ya da</span></div>
+        <button type="button" class="guest-btn" onclick="window.location.href='/'">Misafir Olarak Devam Et</button>
+
+    </form>
+</div>
+
+<script>
+    const ACTIVE_TAB_FROM_FLASK = "{{ active_tab if active_tab else 'login' }}";
+</script>
+<script src="{{url_for('static', filename = 'js/login.js')}}"></script>
+
+</body>
+</html>

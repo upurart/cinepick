@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}Ana Sayfa - CinePick{% endblock %}
+
+{% block content %}
+<main class="main">
+
+    <section class="featured-section">
+        <div class="container">
+            <h2 class="section-title"><i class="fas fa-crown"></i> Öne Çıkanlar</h2>
+
+            <div class="featured-slider">
+                <div class="slider-container">
+                    <button class="slider-btn prev-btn" id="prevBtn">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+
+                    <div class="main-slide active">
+                        <div class="main-backdrop-container">
+                            <img id="main-backdrop" src="" alt="Yükleniyor..." class="main-backdrop" style="transition: opacity 0.2s ease;">
+                            <div class="main-film-info">
+                                <div class="main-poster-container">
+                                    <img id="main-poster" src="" alt="Yükleniyor..." class="main-poster" style="transition: opacity 0.2s ease;">
+                                </div>
+                                <div id="main-film-info">
+                                    <h3 id="main-title" class="main-title" style="transition: opacity 0.2s ease;">Yükleniyor...</h3>
+                                    <div class="main-description">
+                                        <p></p>
+                                    </div>
+
+                                    <div class="main-genre">
+                                        <span id="main-genre-text" style="transition: opacity 0.2s ease;">tür</span>
+                                    </div>
+
+                                    <div class="main-rating">
+                                        <i id="ratingStar" class="fas fa-star" style="transition: opacity 0.2s ease;">
+                                            <span id="main-rating" style="transition: opacity 0.2s ease;">0.0</span>
+                                        </i>
+                                    </div>
+                                    <div class="main-release-date">
+                                        <span id="main-release-date" style="transition: opacity 0.2s ease;"></span>
+                                    </div>
+
+                                    <div class="slButtons">
+                                        {% if current_user.is_authenticated %}
+                                            <button id="add-to-watchlist">
+                                                <i class="fas fa-bookmark"></i>
+                                            </button>
+                                        {% endif %}
+                                        <button id="main-details-btn" class="main-details-btn">
+                                            <i class="fas fa-info-circle"></i> Detaylar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="slider-btn next-btn" id="nextBtn">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <div class="up-next-container">
+                    <h4 class="up-next-header">Sıradaki</h4>
+                    <div class="up-next-list" id="up-next-list"></div>
+                </div>
+            </div>
+
+            <div class="slider-dots">
+                <div class="dots-container" id="slider-dots"></div>
+            </div>
+        </div>
+    </section>
+
+    <!--Flask'tan gelen film verisini JSON'a çevirir, veri yoksa hata almamak için boş dizi atar.-->
+    <script>
+        const movieData = {{ movies | tojson | safe }} || [];
+    </script>
+
+    <section class="popular-movies-section">
+        <div class="container">
+            <h2 class="section-title"><i class="fas fa-fire"></i> Haftanın Popülerleri</h2>
+
+            <div class="weekly-slider-container">
+                <button class="weekly-slider-btn prev" onclick="moveSlider('weekly-track', -1)">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+
+                <div class="weekly-slider-window">
+                    <div class="weekly-slider-track" id="weekly-track">
+                        {% for movie in weekly_movies %}
+                            <div class="weekly-slide-item"
+                                 data-movie-id="{{ movie.id }}"
+                                 onclick="window.location.href='{{ url_for('content_detail', media_type=movie.media_type, id=movie.id) }}'">
+
+                                {% if current_user.is_authenticated %}
+                                    <div class="watchlist-btn">
+                                        <button class="add-item-btn"
+                                                onclick="toggleCardWatchlist(event, this, '{{ movie.media_type }}', '{{ movie.id }}')"
+                                                title="Listeye Ekle">
+                                            <i class="{% if movie.in_watchlist %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                                        </button>
+                                    </div>
+                                {% endif %}
+
+                                <div class="weekly-movie-card-design">
+                                    <div class="weekly-image-container">
+                                        <img src="{{ movie.poster }}" alt="{{ movie.title }}" loading="lazy">
+                                        <div class="weekly-rating-badge">
+                                            <i class="fas fa-star"></i> {{ movie.rating }}
+                                        </div>
+                                    </div>
+                                    <div class="weekly-text-content">
+                                        <h3 class="weekly-movie-title">{{ movie.title }}</h3>
+                                        <p class="weekly-movie-date">{{ movie.release_date }}</p>
+                                    </div>
+                                    <div style="display: flex; position: absolute; justify-content: space-between; align-items: center; bottom: 10px; right:15px; color: #ccc; font-size: 0.9rem;">
+                                        <span style="font-size: 0.7em; text-transform: uppercase; border: 1px solid #555; padding: 2px 5px; border-radius: 4px; color: #888;">
+                                            {{ 'DİZİ' if movie.media_type == 'tv' else 'FİLM' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <button class="weekly-slider-btn next" onclick="moveSlider('weekly-track', 1)">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="watchlist-section" style="margin-top: 50px;">
+        <div class="container">
+            <h2 class="section-title"><i class="fas fa-bookmark"></i> İzleme Listenden</h2>
+
+            {% if not current_user.is_authenticated %}
+                <div class="info-box-wrapper" style="margin-bottom: 40px;">
+                    <div class="info-box login-required">
+                        <i class="fas fa-lock fa-3x"></i>
+                        <h3>Bu Özelliği Kullanmak İçin Giriş Yapmalısın</h3>
+                        <p>İzleme listeni görmek ve düzenlemek için lütfen hesabına giriş yap.</p>
+                        <a href="/login" class="info-btn">Giriş Yap</a>
+                    </div>
+                </div>
+            {% else %}
+                <div class="info-box-wrapper" id="watchlist-empty-state"
+                     style="margin-bottom: 40px; display: {{ 'none' if watchlist_movies else 'block' }};">
+                    <div class="info-box empty-list">
+                        <i class="far fa-folder-open fa-3x"></i>
+                        <h3>İzleme Listen Henüz Boş</h3>
+                        <p>Filmleri keşfet ve beğendiklerini listene ekle!</p>
+                        <a href="{{ url_for('all_movies') }}" class="info-btn secondary">Filmleri Keşfet</a>
+                    </div>
+                </div>
+
+                <div class="weekly-slider-container" id="watchlist-container"
+                     style="display: {{ 'block' if watchlist_movies else 'none' }};">
+
+                    <button class="weekly-slider-btn prev" onclick="moveSlider('watchlist-track', -1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+
+                    <div class="weekly-slider-window" style="margin-bottom: 40px;">
+                        <div class="weekly-slider-track" id="watchlist-track">
+                            {% for movie in watchlist_movies %}
+                                <div class="weekly-slide-item"
+                                     data-movie-id="{{ movie.id }}"
+                                     onclick="window.location.href='{{ url_for('content_detail', media_type=movie.media_type, id=movie.id) }}'">
+
+                                    {% if current_user.is_authenticated %}
+                                        <div class="watchlist-btn">
+                                            <button class="remove-item-btn"
+                                                    onclick="event.stopPropagation(); removeFromWatchlist('{{ movie.media_type }}', '{{ movie.id }}', this)"
+                                                    title="Listeden Kaldır">
+                                                <i class="fas fa-bookmark"></i>
+                                            </button>
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="weekly-movie-card-design watchlist-card">
+                                        <div class="weekly-image-container">
+                                            <img src="{{ movie.poster }}" alt="{{ movie.title }}" loading="lazy">
+                                            <div class="weekly-rating-badge">
+                                                <i class="fas fa-star"></i> {{ movie.rating }}
+                                            </div>
+                                        </div>
+                                        <div class="weekly-text-content">
+                                            <h3 class="weekly-movie-title">{{ movie.title }}</h3>
+                                            <p class="weekly-movie-date">{{ movie.release_date }}</p>
+                                            <div style="display: flex; position: absolute; justify-content: space-between; align-items: center; bottom: 10px; right:15px; color: #ccc; font-size: 0.9rem;">
+                                                <span style="font-size: 0.7em; text-transform: uppercase; border: 1px solid #555; padding: 2px 5px; border-radius: 4px; color: #888;">
+                                                    {{ 'DİZİ' if movie.media_type == 'tv' else 'FİLM' }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <button class="weekly-slider-btn next" onclick="moveSlider('watchlist-track', 1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+</main>
+{% endblock %}
