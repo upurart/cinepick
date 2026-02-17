@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-env_path = os.path.join(basedir, 's.env')
+env_path = os.path.join(basedir, 'TMDB_API_KEY.env')
 load_dotenv(env_path)
 
 # Evrensel ayarlar.
@@ -22,4 +22,5 @@ class Config:
     CACHE_TYPE = "SimpleCache"
     CACHE_DEFAULT_TIMEOUT = 300
     PER_PAGE = 20
+
 
