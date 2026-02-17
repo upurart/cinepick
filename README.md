@@ -1,4 +1,4 @@
-# 🎬 CinePick - Movie Recommendation System
+# 🎬 CinePick - Film Öneri Sistemi
 CinePick, kullanıcıların ilgi alanlarına göre film keşfetmelerini sağlayan, Python Flask tabanlı modern bir web uygulamasıdır. Bu proje, İstanbul Ticaret Üniversitesi Bilgisayar Programcılığı programı kapsamında bir okul projesi olarak geliştirilmiştir.
 
 # 🚀 Öne Çıkan Özellikler
